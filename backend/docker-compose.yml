@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  cashflow-db:
+    image: postgres:16
+    container_name: cashflow-db
+    ports:
+      - "5433:5432"            # if 5432 is busy on your Mac, change to "5433:5432"
+    environment:
+      POSTGRES_USER: cashflow
+      POSTGRES_PASSWORD: cashflow
+      POSTGRES_DB: cashflow_dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cashflow -d cashflow_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
