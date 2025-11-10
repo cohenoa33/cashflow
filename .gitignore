@@ -9,6 +9,8 @@ pnpm-lock.yaml
 backend/.env
 frontend/.env
 
+backend/prisma/migrations/
+
 # build
 dist
 .next
@@ -17,3 +19,4 @@ coverage
 
 # OS
 .DS_Store
+

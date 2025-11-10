@@ -17,8 +17,7 @@ export async function registerRoute(req:Request, res:Response) {
   const user = await prisma.user.create({
     data: { email, password: hash, name }
   });
-
-  return res.json({ token: signToken(user.id) });
+    return res.json({ token: signToken(user.id) });
 }
 
 

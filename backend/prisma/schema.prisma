@@ -20,7 +20,11 @@ model User {
 model Account {
   id               Int                     @id @default(autoincrement())
   name             String
+  description      String?
+  notes            String?
   currency         String                  @default("USD")
+  startingBalance  Decimal                  @db.Decimal(12, 2)@default(0.00)
+  currentBalance   Decimal                  @db.Decimal(12, 2)@default(0.00)
   ownerId          Int
   owner            User                    @relation(fields: [ownerId], references: [id])
   authorizedUsers  AccountAuthorizedUser[]
