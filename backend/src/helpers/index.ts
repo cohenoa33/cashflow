@@ -1,4 +1,4 @@
-import { prisma } from "../prisma";
+import { prisma } from "../prisma/client";
 
 /** Helpers */
 export async function canViewAccount(userId: number, accountId: number) {

@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
-import { prisma } from "../prisma";
-import { canViewAccount, isOwner, totalUpToToday } from "../helpers";
+import { prisma } from "../prisma/client";
+import { canViewAccount, isOwner, } from "../helpers";
 import { Router } from "express";
 
 export const accountRouter = Router();
@@ -32,7 +32,7 @@ accountRouter.post("/", async (req: Request, res: Response) => {
     }
   });
 
-  res.status(201).json({account});
+  res.status(201).json(account);
 });
 
 /**

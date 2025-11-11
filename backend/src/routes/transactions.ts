@@ -1,6 +1,6 @@
 import {  Response } from "express";
 import { AuthenticatedRequest } from "../types/express";
-import { prisma } from "../prisma";
+import { prisma } from "../prisma/client";
 import { canViewAccount, isOwner, affectsBalance, adjustBalance } from "../helpers";
 
 

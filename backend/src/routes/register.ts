@@ -1,6 +1,6 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
-import { prisma } from "../prisma";
+import { prisma } from "../prisma/client";
 import { Request, Response } from "express";
 import { signToken } from "../authentication";
 
