@@ -1,4 +1,3 @@
-
 const { execSync } = require("child_process");
 const net = require("net");
 
@@ -45,11 +44,12 @@ function waitForPostgres({
     console.log("⏳ Waiting for Postgres on localhost:5433...");
     await waitForPostgres({ host: "localhost", port: 5433 });
 
-    console.log("➡️  Starting backend in dev mode (ts-node-dev src/index.ts)...");
+    console.log(
+      "➡️  Starting backend in dev mode (ts-node-dev src/index.ts)..."
+    );
     execSync("npx ts-node-dev --respawn src/index.ts", { stdio: "inherit" });
   } catch (err) {
     console.error("❌ Failed to start dev server with Docker:", err);
     process.exit(1);
   }
 })();
-
