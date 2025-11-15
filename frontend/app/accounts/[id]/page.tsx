@@ -10,7 +10,7 @@ import TransactionsList from "@/components/transactions/TransactionsList";
 import AddTransactionForm from "@/components/transactions/AddTransactionForm";
 import EditAccountForm from "@/components/accounts/EditAccountForm";
 import DeleteAccountButton from "@/components/accounts/DeleteAccountButton";
-
+import PopupModal from "@/components/ui/Modal";
 
 type Tx = {
   id: number;
@@ -43,24 +43,24 @@ export default function AccountDetailPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
-
-useEffect(() => {
-  async function loadAccount() {
-    setErr(null);
-    setLoading(true);
-    try {
-      const data = await api<AccountDetail>(`/accounts/${accountId}`);
-      setAccount(data);
-    } catch (e) {
-      setErr(handleError(e, 3));
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    async function loadAccount() {
+      setErr(null);
+      setLoading(true);
+      try {
+        const data = await api<AccountDetail>(`/accounts/${accountId}`);
+        setAccount(data);
+      } catch (e) {
+        setErr(handleError(e, 3));
+      } finally {
+        setLoading(false);
+      }
     }
-  }
 
-  if (Number.isFinite(accountId)) loadAccount();
-}, [accountId, refreshKey]);
+    if (Number.isFinite(accountId)) loadAccount();
+  }, [accountId, refreshKey]);
 
   return (
     <RequireAuth>
@@ -81,26 +81,45 @@ useEffect(() => {
           <section className="space-y-6">
             <header className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-semibold">{account.name}</h1>
-                <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600">
                   Currency: {account.currency} • Starting:{" "}
                   {String(account.startingBalance)} • Current:{" "}
                   {String(account.currentBalance)}
                 </p>
               </div>
-              <DeleteAccountButton id={account.id} />
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(true)}
+                  className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Edit account
+                </button>
+                <DeleteAccountButton id={account.id} />
+              </div>
             </header>
 
-            <EditAccountForm
-              account={{
-                id: account.id,
-                name: account.name,
-                currency: account.currency,
-                description: account.description,
-                notes: account.notes
-              }}
-              onSaved={() => setRefreshKey((k) => k + 1)}
-            />
+            {isEditOpen && (
+              <PopupModal
+                label="Edit account"
+                close={() => setIsEditOpen(false)}
+              >
+                <EditAccountForm
+                  account={{
+                    id: account.id,
+                    name: account.name,
+                    currency: account.currency,
+                    description: account.description,
+                    notes: account.notes
+                  }}
+                  onSaved={() => {
+                    // refresh data and close modal after successful save
+                    setRefreshKey((k) => k + 1);
+                    setIsEditOpen(false);
+                  }}
+                />
+              </PopupModal>
+            )}
           </section>
         )}
         <AddTransactionForm

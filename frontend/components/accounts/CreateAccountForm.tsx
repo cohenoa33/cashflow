@@ -47,9 +47,7 @@ export default function CreateAccountForm({ onCreated }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3 rounded-xl border p-4">
-      <h2 className="text-lg font-semibold">Create account</h2>
-
+    <form onSubmit={onSubmit} className="space-y-3 rounded-xl p-4">
       <div>
         <label className="text-sm">Name</label>
         <input
@@ -114,7 +112,7 @@ export default function CreateAccountForm({ onCreated }: Props) {
       <button
         type="submit"
         disabled={busy}
-        className="rounded-lg bg-black px-4 py-2 text-white disabled:opacity-60"
+        className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         {busy ? "Creating…" : "Create"}
       </button>
