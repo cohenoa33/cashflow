@@ -24,14 +24,8 @@ Built with **Node.js (Express)**, **TypeScript**, **Prisma**, and **PostgreSQL**
 cd backend
 npm install
 ```
-### 2. Start PostgreSQL (Docker)
-```bash 
-docker compose up -d
-```
 
-If port 5432 is taken, update the mapping inside docker-compose.yml (e.g. 5433:5432).
-
-### 3. Configure environment
+### 2. Configure environment
 ```bash 
 cp .env.example .env
 ```
@@ -44,6 +38,19 @@ CORS_ORIGIN=http://localhost:3000
 JWT_SECRET=supersecret_dev_key
 ```
 
+### 3. Ensure Docker Desktop is running
+The backend uses **PostgreSQL via Docker Compose** in development.
+
+You do not need to run docker compose up manually.
+
+The dev script will:
+* Start Docker Compose automatically
+* Wait until Postgres is reachable
+* Then start the backend server
+
+Just make sure **Docker Desktop is running** in the background.
+
+
 ### 4. Apply migrations and generate Prisma client
 ```bash
 npx prisma migrate dev
@@ -54,6 +61,11 @@ npx prisma generate
 ```bash
 npm run dev
 ```
+This will:
+* Start Docker Compose (docker compose up -d)
+* Wait for Postgres (localhost:5433)
+* Launch the backend with hot reload (ts-node-dev)
+
 The API will be live at: http://localhost:4000
 
 

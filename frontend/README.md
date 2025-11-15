@@ -17,13 +17,13 @@ Connects to the backend API for auth, accounts, and transactions.
 
 ## 🚀 Quick Start
 
-### 1) Install
+### 1. Install
 ```bash
 cd frontend
 npm install
 ```
 
-### 2) Environment
+### 2. Environment
 Create .env.local:
 ```.env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
@@ -32,15 +32,20 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 Only NEXT_PUBLIC_* variables are exposed to the browser.
 Keep secrets on the server (backend).
 
-### 3) Dev server
+### 3. Dev server (requires backend to be running)
+The frontend communicates with the backend API at `http://localhost:4000`.
+
+Before starting the frontend, make sure the backend is running.
+Once the backend is running, start the frontend:
+
 ```bash 
 npm run dev
 # http://localhost:3000
 ```
 
-If prompted, Turbopack is already enabled for development.
+Frontend is now available at http://localhost:3000
 
-### 4) Build & run production
+### 4. Build & run production
 ```bash 
 npm run build
 npm start
