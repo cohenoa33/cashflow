@@ -32,7 +32,25 @@ export default function TransactionsList({ accountId }: Props) {
     date: string; // yyyy-mm-dd
   }>({ amount: "", category: "", description: "", date: "" });
   const [busyRow, setBusyRow] = useState<number | null>(null);
+  const [disabled, setDisabled] = useState(
+    busyRow !== null ||
+      !form.amount ||
+      Number(form.amount) === 0 ||
+      !form.category ||
+      !form.description ||
+      !form.date
+  );
 
+    useEffect(() => {
+      setDisabled(
+        busyRow !== null ||
+          !form.amount ||
+          Number(form.amount) === 0 ||
+          !form.category ||
+          !form.description ||
+          !form.date
+      );
+    }, [busyRow, form]);
   useEffect(() => {
     if (!Number.isFinite(accountId)) return;
 
@@ -70,31 +88,32 @@ export default function TransactionsList({ accountId }: Props) {
   }
 
   async function saveEdit(id: number) {
-    try {
-      setBusyRow(id);
-      setErr(null);
+    if (disabled) return;
+      try {
+        setBusyRow(id);
+        setErr(null);
 
-      await api(`/transactions/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          amount: Number(form.amount),
-          category: form.category || undefined,
-          description: form.description || undefined,
-          date: ymdAtTenAMLocal(form.date) // normalize to 10:00 local
-        })
-      });
+        await api(`/transactions/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            amount: Number(form.amount),
+            category: form.category || undefined,
+            description: form.description || undefined,
+            date: ymdAtTenAMLocal(form.date) // normalize to 10:00 local
+          })
+        });
 
-      // refresh list (simple approach)
-      const res = await api<Transaction[]>(
-        `/transactions/by-account/${accountId}`
-      );
-      setItems(res);
-      cancelEdit();
-    } catch (e) {
-      setErr(handleError(e, 4));
-    } finally {
-      setBusyRow(null);
-    }
+        // refresh list (simple approach)
+        const res = await api<Transaction[]>(
+          `/transactions/by-account/${accountId}`
+        );
+        setItems(res);
+        cancelEdit();
+      } catch (e) {
+        setErr(handleError(e, 4));
+      } finally {
+        setBusyRow(null);
+      }
   }
 
   async function remove(id: number) {
@@ -208,7 +227,9 @@ export default function TransactionsList({ accountId }: Props) {
                     <button
                       onClick={() => saveEdit(t.id)}
                       disabled={busyRow === t.id}
-                      className="rounded bg-black px-3 py-1 text-white disabled:opacity-60"
+                      // rounded bg-black px-3 py-1 text-white disabled:opacity-60    ? "bg-blue-300 text-white cursor-not-allowed"
+                      // : "bg-blue-600 text-white hover:bg-blue-700"
+                      className={`rounded bg-black px-3 py-1 text-white disabled:opacity-60 border`}
                     >
                       {busyRow === t.id ? "Saving…" : "Save"}
                     </button>

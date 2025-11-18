@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
+import { dateAtTenAMLocal, getTodayDateString } from "@/lib/date";
 
 export default function AddTransactionForm({
   accountId,
@@ -15,16 +16,30 @@ export default function AddTransactionForm({
   const [type, setType] = useState("EXPENSE");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [date, setDate] = useState<string>(""); // YYYY-MM-DD
+  const [date, setDate] = useState<string>(getTodayDateString())
   const [busy, setBusy] = useState(false);
+  const [disabled, setDisabled] = useState(
+    busy ||
+    !amount ||
+    Number(amount) === 0 ||
+    !category ||
+    !description ||
+    !date
+  );
+
+  // Update disabled state when relevant inputs change
+  useEffect(() => {
+    setDisabled(
+      busy ||
+      !amount ||
+      Number(amount) === 0 ||
+      !category ||
+      !description ||
+      !date
+    );
+  }, [busy, amount, category, description, date]);
   const [err, setErr] = useState<string | null>(null);
 
-  function dateAtTenAMLocal(d: string): string | undefined {
-    if (!d) return undefined;
-    const [y, m, day] = d.split("-").map(Number);
-    const dt = new Date(y, (m ?? 1) - 1, day ?? 1, 10, 0, 0, 0);
-    return dt.toISOString();
-  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,8 +72,6 @@ export default function AddTransactionForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-3 rounded-xl border p-4">
-      <h2 className="text-lg font-semibold">Add transaction</h2>
-
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="text-sm">Amount</label>
@@ -68,7 +81,7 @@ export default function AddTransactionForm({
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="-45.50"
+            placeholder="00.00"
             required
           />
         </div>
@@ -91,6 +104,11 @@ export default function AddTransactionForm({
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
+            onFocus={() => {
+              if (!date) {
+                setDate(getTodayDateString());
+              }
+            }}
           />
         </div>
       </div>
@@ -103,6 +121,7 @@ export default function AddTransactionForm({
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             placeholder="Food / Salary / Fees"
+            required
           />
         </div>
         <div>
@@ -112,6 +131,7 @@ export default function AddTransactionForm({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Groceries, Coffee…"
+            required
           />
         </div>
       </div>
@@ -120,8 +140,12 @@ export default function AddTransactionForm({
 
       <button
         type="submit"
-        disabled={busy}
-        className="rounded-lg bg-black px-4 py-2 text-white disabled:opacity-60"
+        disabled={disabled}
+        className={`inline-flex items-center rounded-md px-4 py-2 shadow focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          disabled
+            ? "bg-blue-300 text-white cursor-not-allowed"
+            : "bg-blue-600 text-white hover:bg-blue-700"
+        }`}
       >
         {busy ? "Adding…" : "Add"}
       </button>

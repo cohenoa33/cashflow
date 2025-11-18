@@ -45,6 +45,7 @@ export default function AccountDetailPage() {
   const [err, setErr] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
   useEffect(() => {
     async function loadAccount() {
@@ -83,8 +84,7 @@ export default function AccountDetailPage() {
             <header className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">
-                  Currency: {account.currency} • Starting:{" "}
-                  {String(account.startingBalance)} • Current:{" "}
+                  Currency: {account.currency} • Current:{" "}
                   {String(account.currentBalance)}
                 </p>
               </div>
@@ -99,7 +99,10 @@ export default function AccountDetailPage() {
                 <DeleteAccountButton id={account.id} />
               </div>
             </header>
-            <AccountBalanceChart accountId={account.id} />
+            <AccountBalanceChart
+              accountId={account.id}
+              refreshKey={refreshKey}
+            />
             {isEditOpen && (
               <PopupModal
                 label="Edit account"
@@ -123,11 +126,28 @@ export default function AccountDetailPage() {
             )}
           </section>
         )}
-        <AddTransactionForm
-          accountId={accountId}
-          onCreated={() => setRefreshKey((k) => k + 1)}
-        />
 
+        {isAddOpen && (
+          <PopupModal label="Add Transaction" close={() => setIsAddOpen(false)}>
+            <AddTransactionForm
+              accountId={accountId}
+              onCreated={() => {
+                setIsAddOpen(false);
+                setRefreshKey((k) => k + 1);
+              }}
+            />
+          </PopupModal>
+        )}
+
+        {/* Add transaction button + modal */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Add transaction
+          </button>
+        </div>
         <TransactionsList key={refreshKey} accountId={accountId} />
       </main>
     </RequireAuth>

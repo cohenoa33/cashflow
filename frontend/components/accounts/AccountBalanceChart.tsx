@@ -13,26 +13,27 @@ import { api } from "@/lib/api";
 import type { BalancePoint } from "@/types/api";
 import { handleError } from "@/lib/error";
 
-export default function AccountBalanceChart({ accountId }: { accountId: number }) {
+export default function AccountBalanceChart({ accountId, refreshKey }: { accountId: number; refreshKey: number }) {
   const [data, setData] = useState<BalancePoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadHistory() {
-      try {
-        const res = await api<BalancePoint[]>(
-          `/accounts/${accountId}/balance-history`
-        );
-        setData(res);
-      } catch (e: unknown) {
-        setError( handleError(e, 5));
-      } finally {
-        setLoading(false);
-      }
+    setLoading(true);
+    try {
+      const res = await api<BalancePoint[]>(
+        `/accounts/${accountId}/balance-history`
+      );
+      setData(res);
+    } catch (e: unknown) {
+  setError(handleError(e, 5));
+    } finally {
+      setLoading(false);
     }
-    loadHistory();
-  }, [accountId]);
+  }
+  loadHistory();
+}, [accountId, refreshKey]);
 
   if (loading) return <p>Loading chart…</p>;
   if (error) return <p className="text-red-600">{error}</p>;
