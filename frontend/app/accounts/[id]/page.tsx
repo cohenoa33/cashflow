@@ -11,6 +11,7 @@ import AddTransactionForm from "@/components/transactions/AddTransactionForm";
 import EditAccountForm from "@/components/accounts/EditAccountForm";
 import DeleteAccountButton from "@/components/accounts/DeleteAccountButton";
 import PopupModal from "@/components/ui/Modal";
+import AccountBalanceChart from "@/components/accounts/AccountBalanceChart";
 
 type Tx = {
   id: number;
@@ -81,7 +82,7 @@ export default function AccountDetailPage() {
           <section className="space-y-6">
             <header className="flex items-center justify-between">
               <div>
-                              <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600">
                   Currency: {account.currency} • Starting:{" "}
                   {String(account.startingBalance)} • Current:{" "}
                   {String(account.currentBalance)}
@@ -98,7 +99,7 @@ export default function AccountDetailPage() {
                 <DeleteAccountButton id={account.id} />
               </div>
             </header>
-
+            <AccountBalanceChart accountId={account.id} />
             {isEditOpen && (
               <PopupModal
                 label="Edit account"

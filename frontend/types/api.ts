@@ -10,3 +10,9 @@ export type Account = {
   createdAt: string;
   updatedAt: string;
 };
+
+
+export type BalancePoint = {
+  date: string; 
+  balance: number;
+};
