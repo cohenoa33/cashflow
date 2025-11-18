@@ -1,7 +1,9 @@
-import { Response, Request } from "express";
+import { Response } from "express";
 import { prisma } from "../prisma/client";
 import { canViewAccount, isOwner, } from "../helpers";
 import { Router } from "express";
+import { buildBalanceHistory } from "../helpers/accounts";
+import type { AuthenticatedRequest } from "../types/express";
 
 export const accountRouter = Router();
 
@@ -9,7 +11,7 @@ export const accountRouter = Router();
  * POST /accounts
  * Create account — requester becomes the owner
  */
-accountRouter.post("/", async (req: Request, res: Response) => {
+accountRouter.post("/", async (req: AuthenticatedRequest, res: Response) => {
 
   const {
     name,
@@ -39,7 +41,7 @@ accountRouter.post("/", async (req: Request, res: Response) => {
  * GET /accounts
  * List accounts where the user is owner OR authorized
  */
-accountRouter.get("/", async (req: Request, res: Response) => {
+accountRouter.get("/", async (req: AuthenticatedRequest, res: Response) => {
   const accounts = await prisma.account.findMany({
     where: {
       OR: [
@@ -71,7 +73,7 @@ accountRouter.get("/", async (req: Request, res: Response) => {
  * GET /accounts/:id
  * Get single account (owner or authorized)
  */
-accountRouter.get("/:id", async (req: Request, res: Response) => {
+accountRouter.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
   const accountId = Number(req.params.id);
   if (Number.isNaN(accountId))
     return res.status(400).json({ error: "invalid id" });
@@ -99,7 +101,7 @@ accountRouter.get("/:id", async (req: Request, res: Response) => {
  * PATCH /accounts/:id
  * Edit account — owner only
  */
-accountRouter.patch("/:id", async (req: Request, res: Response) => {
+accountRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response) => {
   const accountId = Number(req.params.id);
   if (Number.isNaN(accountId))
     return res.status(400).json({ error: "invalid id" });
@@ -127,7 +129,7 @@ accountRouter.patch("/:id", async (req: Request, res: Response) => {
  * DELETE /accounts/:id
  * Delete account — owner only
  */
-accountRouter.delete("/:id", async (req: Request, res: Response) => {
+accountRouter.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
   const accountId = Number(req.params.id);
   if (Number.isNaN(accountId))
     return res.status(400).json({ error: "invalid id" });
@@ -146,6 +148,44 @@ accountRouter.delete("/:id", async (req: Request, res: Response) => {
   ]);
 
   res.json({ ok: true });
+});
+
+/**
+ * GET /accounts/:id/balance-history
+ * Returns balance over time for charting
+ */
+accountRouter.get("/:id/balance-history", async (req: AuthenticatedRequest, res: Response) => {
+ const accountId = Number(req.params.id);
+ if (Number.isNaN(accountId))
+   return res.status(400).json({ error: "invalid id" });
+
+if (!(await canViewAccount(req.userId, accountId))) {
+  return res.status(404).json({ error: "account not found" });
+}
+
+  // fetch starting balance + all transactions for this account
+  const account = await prisma.account.findUnique({
+    where: { id: accountId },
+    select: {
+      startingBalance: true,
+      transactions: {
+        select: {
+          date: true,
+          amount: true,
+        },
+        orderBy: { date: "asc" },
+      },
+    },
+  });
+
+  if (!account) {
+    return res.status(404).json({ error: "account not found" });
+  }
+
+  const starting = Number(account.startingBalance ?? 0);
+  const history = buildBalanceHistory(starting, account.transactions);
+
+  return res.json(history);
 });
 
 export default accountRouter;
