@@ -5,6 +5,7 @@ import prismaMock from "./__mocks__/prisma";
 
 const token = jwt.sign({ userId: 1 }, process.env.JWT_SECRET || "test_secret");
 
+
 describe("Accounts routes", () => {
   it("GET /accounts returns list", async () => {
     prismaMock.account.findMany.mockResolvedValue([
@@ -63,3 +64,8 @@ describe("Accounts routes", () => {
     expect(res.body.name).toBe("Savings");
   });
 });
+
+jest.mock("../src/helpers", () => ({
+  canViewAccount: jest.fn(),
+  isOwner: jest.fn()
+}));
