@@ -117,9 +117,10 @@ frontend/
 - `isLoggedIn()`
 
 ### `components/RequireAuth.tsx`
-- Client-side guard (never SSRs user content)
-- Redirects to `/login` if not authenticated
-- Uses `suppressHydrationWarning` pattern to prevent hydration mismatch
+- Lightweight client-side auth guard
+- Renders children on both server and client for consistent HTML (no hydration mismatch)
+- On the client, if no token is found, it redirects the user to `/login`
+- Relies on backend authentication (`requireAuth`) for real data protection
 
 ---
 
