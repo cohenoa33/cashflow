@@ -23,7 +23,6 @@ describe("POST /register", () => {
       description: null,
       notes: null,
       startingBalance: "0.00" as any,
-      currentBalance: "0.00" as any,
       createdAt: new Date(),
       updatedAt: new Date()
     } as any);

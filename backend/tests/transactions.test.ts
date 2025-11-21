@@ -35,7 +35,7 @@ describe("Transactions routes", () => {
       });
 
     expect(res.status).toBe(201);
-    expect(prismaMock.account.update).toHaveBeenCalled(); // balance updated
+
   });
 
   it("GET /transactions/by-account/:id returns list", async () => {

@@ -1,7 +1,7 @@
 import {  Response } from "express";
 import { AuthenticatedRequest } from "../types/express";
 import { prisma } from "../prisma/client";
-import { canViewAccount, isOwner, affectsBalance, adjustBalance } from "../helpers";
+import { canViewAccount, isOwner, affectsBalance } from "../helpers";
 
 
 
@@ -39,9 +39,7 @@ transactionRouter.post("/", async (req: AuthenticatedRequest, res: Response) => 
     }
   });
 
-  if (affectsBalance(txDate)) {
-    await adjustBalance(accountId, Number(amount));
-  }
+
 
   res.status(201).json(tx);
 });
@@ -90,9 +88,7 @@ transactionRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response)
     }
   });
 
-  if (delta !== 0) {
-    await adjustBalance(existing.accountId, delta);
-  }
+
 
   res.json(updated);
 });
@@ -111,11 +107,6 @@ transactionRouter.delete("/:id", async (req: AuthenticatedRequest, res: Response
     return res.status(404).json({ error: "transaction not found" });
   if (!(await isOwner(req.userId, existing.accountId))) {
     return res.status(403).json({ error: "only owner can delete" });
-  }
-
-  // adjust balance if it was counted
-  if (affectsBalance(existing.date)) {
-    await adjustBalance(existing.accountId, -Number(existing.amount));
   }
 
   await prisma.transaction.delete({ where: { id } });

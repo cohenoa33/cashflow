@@ -2,8 +2,8 @@ import { Response } from "express";
 import { prisma } from "../prisma/client";
 import { canViewAccount, isOwner, } from "../helpers";
 import { Router } from "express";
-import { buildBalanceHistory } from "../helpers/accounts";
 import type { AuthenticatedRequest } from "../types/express";
+import { buildBalanceSummary, makeAccountWithSummary } from "../helpers/accounts";
 
 export const accountRouter = Router();
 
@@ -29,12 +29,16 @@ accountRouter.post("/", async (req: AuthenticatedRequest, res: Response) => {
       description,
       notes,
       startingBalance,
-      currentBalance: startingBalance,
       ownerId: req.userId
     }
   });
 
-  res.status(201).json(account);
+  res.status(201).json({
+    ...account,
+    currentBalance: startingBalance,
+    forecastBalance: startingBalance,
+    dailySeries: [] 
+  });
 });
 
 /**
@@ -58,15 +62,21 @@ accountRouter.get("/", async (req: AuthenticatedRequest, res: Response) => {
       description: true,
       notes: true,
       startingBalance: true,
-      currentBalance: true,
       createdAt: true,
-      updatedAt: true, transactions: true
+      updatedAt: true, transactions: {orderBy: { date: "asc" }}
     }
   });
+const accountWithBalances = await Promise.all(accounts.map( async (account) => {
+  const summary = buildBalanceSummary(
+    account.startingBalance,
+    account.transactions,
+    { ignoreTx: true }
+  );
 
+  return makeAccountWithSummary(account, summary);
+}));
 
-
-  res.json(accounts);
+  res.json(accountWithBalances);
 });
 
 /**
@@ -86,15 +96,19 @@ accountRouter.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
     where: { id: accountId },
     include: {
       authorizedUsers: { select: { userId: true } },
-      transactions: true
+      transactions: {orderBy: { date: "asc" } }
     }
   });
 
   if (!account) return res.status(404).json({ error: "account not found" });
 
+  const summary = buildBalanceSummary(
+  account.startingBalance,
+  account.transactions
+);
 
+res.json(makeAccountWithSummary(account, summary));
 
-  res.json(account);
 });
 
 /**
@@ -117,12 +131,18 @@ accountRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response) => 
   if (name !== undefined) data.name = name;
   if (currency !== undefined) data.currency = currency;
 
-  const updated = await prisma.account.update({
+  const account = await prisma.account.update({
     where: { id: accountId },
-    data, include: {transactions: true}
+    data,
+    include: { transactions: { orderBy: { date: "desc" } } }
   });
 
-  res.json(updated);
+    const summary = buildBalanceSummary(
+      account.startingBalance,
+      account.transactions
+    );
+
+  res.json(makeAccountWithSummary(account, summary));
 });
 
 /**
@@ -183,9 +203,9 @@ if (!(await canViewAccount(req.userId, accountId))) {
   }
 
   const starting = Number(account.startingBalance ?? 0);
-  const history = buildBalanceHistory(starting, account.transactions);
+  const summary = buildBalanceSummary(starting, account.transactions);
 
-  return res.json(history);
+  return res.json(summary.dailySeries);
 });
 
 export default accountRouter;
