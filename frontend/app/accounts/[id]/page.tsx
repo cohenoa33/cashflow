@@ -33,6 +33,7 @@ type AccountDetail = {
   notes?: string | null;
   startingBalance: number | string;
   currentBalance: number | string;
+  forecastBalance: number | string;
   transactions: Tx[];
 };
 
@@ -85,7 +86,8 @@ export default function AccountDetailPage() {
               <div>
                 <p className="text-sm text-gray-600">
                   Currency: {account.currency} • Current:{" "}
-                  {String(account.currentBalance)}
+                  {String(account.currentBalance)} • Forecast:{" "}
+                  {String(account.forecastBalance)}
                 </p>
               </div>
               <div className="flex items-center gap-3">

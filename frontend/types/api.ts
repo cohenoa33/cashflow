@@ -7,6 +7,7 @@ export type Account = {
   notes?: string | null;
   startingBalance: number | string;
   currentBalance: number | string;
+  forecastBalance: number | string;
   createdAt: string;
   updatedAt: string;
 };

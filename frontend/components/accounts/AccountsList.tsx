@@ -41,8 +41,8 @@ export default function AccountsList() {
           <div>
             <div className="font-medium">{a.name}</div>
             <div className="text-sm text-gray-500">
-              {a.currency} • Started: {String(a.startingBalance)} • Current:{" "}
-              {String(a.currentBalance)}
+              {a.currency} • Current: {String(a.currentBalance)} • Forecast:{" "}
+              {String(a.forecastBalance)}
             </div>
           </div>
           <a
