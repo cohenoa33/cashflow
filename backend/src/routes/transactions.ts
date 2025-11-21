@@ -143,7 +143,7 @@ transactionRouter.get("/:id", async (req: AuthenticatedRequest, res: Response) =
 
   const tx = await prisma.transaction.findUnique({
     where: { id },
-    include: { account: { select: { id: true, ownerId: true } } }
+    include: { account: { select: { id: true, ownerId: true } } }, 
   });
   if (!tx) return res.status(404).json({ error: "transaction not found" });
   if (!(await canViewAccount(req.userId, tx.accountId))) {

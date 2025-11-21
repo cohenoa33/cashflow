@@ -6,6 +6,7 @@ import { loginRoute } from "./routes/login";
 import transactionRouter from "./routes/transactions";
 import accountRouter from "./routes/accounts";
 import { requireAuth } from "./authentication";
+import { userRoute } from "./routes/user";
 
 const app = express();
 
@@ -17,7 +18,7 @@ app.use(express.json());
 // protected routers
 app.use("/transactions", requireAuth, transactionRouter);
 app.use("/accounts", requireAuth, accountRouter);
-
+app.get("/user", requireAuth, userRoute);
 // public
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.post("/register", registerRoute);
