@@ -1,24 +1,19 @@
 "use client";
 
-import RequireAuth from "@/components/RequireAuth";
-import LogoutButton from "@/components/LogoutButton";
-import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { isLoggedIn } from "@/lib/auth";
 
-export default function Home() {
-  return (
-    <RequireAuth>
-      <main className="min-h-dvh grid place-items-center p-6">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-semibold">Welcome to Cashflow</h1>
-          <p className="text-gray-500">You are logged in 🎉</p>
-          <div className="flex items-center gap-3 justify-center">
-            <Link href="/accounts" className="underline">
-              Go to Accounts
-            </Link>
-            <LogoutButton />
-          </div>
-        </div>
-      </main>
-    </RequireAuth>
-  );
+export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoggedIn()) {
+      router.replace("/accounts");
+    } else {
+      router.replace("/login");
+    }
+  }, [router]);
+
+  return null;
 }

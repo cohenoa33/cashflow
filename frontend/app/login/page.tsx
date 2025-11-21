@@ -23,7 +23,7 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password })
       });
       saveToken(res.token);
-      router.push("/"); 
+      router.push("/accounts"); 
     } catch (error: unknown) { 
       setErr(handleError(error, 1));
     } finally {

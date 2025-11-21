@@ -5,13 +5,13 @@ import { useParams } from "next/navigation";
 import RequireAuth from "@/components/RequireAuth";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
-import Link from "next/link";
 import TransactionsList from "@/components/transactions/TransactionsList";
 import AddTransactionForm from "@/components/transactions/AddTransactionForm";
 import EditAccountForm from "@/components/accounts/EditAccountForm";
 import DeleteAccountButton from "@/components/accounts/DeleteAccountButton";
 import PopupModal from "@/components/ui/Modal";
 import AccountBalanceChart from "@/components/accounts/AccountBalanceChart";
+import NavBar from "@/components/NavBar";
 
 type Tx = {
   id: number;
@@ -67,14 +67,13 @@ export default function AccountDetailPage() {
 
   return (
     <RequireAuth>
+      <NavBar />
       <main className="mx-auto max-w-3xl p-6 space-y-6">
         <header className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">
             {account ? account.name : "Account"}
           </h1>
-          <Link href="/accounts" className="text-sm underline">
-            Back to Accounts
-          </Link>
+        
         </header>
 
         {loading && <p>Loading…</p>}

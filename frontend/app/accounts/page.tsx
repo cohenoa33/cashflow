@@ -2,10 +2,10 @@
 
 import RequireAuth from "@/components/RequireAuth";
 import AccountsList from "@/components/accounts/AccountsList";
-import Link from "next/link";
 import CreateAccountForm from "@/components/accounts/CreateAccountForm";
 import { useEffect, useState } from "react";
 import PopupModal from "@/components/ui/Modal";
+import NavBar from "@/components/NavBar";
 
 export default function AccountsPage() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -28,13 +28,8 @@ export default function AccountsPage() {
 
   return (
     <RequireAuth>
+      <NavBar />
       <main className="mx-auto max-w-3xl p-6 space-y-6">
-        <header className="flex items-center justify-between">
-          <Link className="text-sm underline" href="/">
-            Home
-          </Link>
-        </header>
-
         <button
           type="button"
           onClick={() => setIsCreateOpen(true)}
@@ -44,10 +39,12 @@ export default function AccountsPage() {
         </button>
 
         {isCreateOpen && (
-          <PopupModal label="Create account" close={() => setIsCreateOpen(false)}>
+          <PopupModal
+            label="Create account"
+            close={() => setIsCreateOpen(false)}
+          >
             <CreateAccountForm onCreated={handleCreated} />
           </PopupModal>
-        
         )}
         <div key={refreshKey}>
           <AccountsList />

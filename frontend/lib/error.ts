@@ -4,7 +4,8 @@ export function handleError(error: unknown,msgID:number): string {
       2: "Create account failed",
       3: "Load account failed",
       4: "Create transaction failed",
-      5: "Load transactions failed"
+      5: "Load transactions failed",
+      6: "Load profile failed"
     };
     const defMsg = msgDict[msgID] || "Operation failed"
 
