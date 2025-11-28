@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { saveToken } from "@/lib/auth";
 import { handleError } from "@/lib/error";
+import { PASSWORD_REGEX } from "@/lib/password";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -12,6 +14,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [newTouched, setNewTouched] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,12 +28,13 @@ export default function RegisterPage() {
       saveToken(res.token);
       router.push("/accounts");
     } catch (error: unknown) {
-           setErr(handleError(error, 1));
+      setErr(handleError(error, 1));
     } finally {
       setBusy(false);
+      setNewTouched(false);
     }
   }
-
+ const invalid =password.length > 0 && newTouched && !PASSWORD_REGEX.test(password);
   return (
     <main className="min-h-dvh grid place-items-center p-6">
       <form
@@ -53,14 +57,16 @@ export default function RegisterPage() {
 
         <label className="block">
           <span className="text-sm">Password</span>
-          <input
-            className="mt-1 w-full rounded-lg border p-2"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-          />
+             <PasswordInput
+             maxHeight
+                                 value={password}
+                                 onChange={(v) => {
+                                   setPassword(v);
+                                   setNewTouched(true);
+                                 }}
+                                 invalid={invalid}
+                                 placeholder="Current password"
+                               />
         </label>
 
         {err && <p className="text-sm text-red-600">{err}</p>}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { saveToken } from "@/lib/auth";
 import { handleError } from "@/lib/error";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,13 +54,14 @@ export default function LoginPage() {
 
         <label className="block">
           <span className="text-sm">Password</span>
-          <input
-            className="mt-1 w-full rounded-lg border p-2"
-            type="password"
+          <PasswordInput
+            maxHeight
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(v) => {
+              setPassword(v);
+            }}
+            invalid={false}
             placeholder="••••••••"
-            required
           />
         </label>
 
