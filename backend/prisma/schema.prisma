@@ -11,6 +11,8 @@ model User {
   email               String                  @unique
   password            String
   name                String?
+  firstName           String?  
+  lastName            String?  
   accounts            Account[]               
   authorizedAccounts  AccountAuthorizedUser[] 
   createdAt           DateTime                @default(now())
