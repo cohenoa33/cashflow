@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Account } from "@/types/api";
 import { handleError } from "@/lib/error";
-
+import AccountsOverviewChart, {
+  AccountOverviewItem
+} from "./AccountsOverviewChart";
 export default function AccountsList() {
   const [items, setItems] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,18 @@ export default function AccountsList() {
 
   return (
     <ul className="divide-y rounded-xl border">
+      <AccountsOverviewChart
+        accounts={items.map((a) => ({
+          id: a.id,
+          name: a.name,
+          currentBalance: Number(a.currentBalance ?? 0),
+          forecastBalance:
+            a.forecastBalance !== undefined
+              ? Number(a.forecastBalance)
+              : undefined
+        }))}
+      />
+
       {items.map((a) => (
         <li key={a.id} className="flex items-center justify-between p-4">
           <div>

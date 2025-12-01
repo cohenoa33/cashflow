@@ -37,6 +37,7 @@ export default function AccountBalanceChart({ accountId, refreshKey }: { account
 
   if (loading) return <p>Loading chart…</p>;
   if (error) return <p className="text-red-600">{error}</p>;
+  if (data.length === 0) return <></>
 
   return (
     <div className="h-64 w-full">

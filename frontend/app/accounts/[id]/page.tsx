@@ -149,6 +149,7 @@ export default function AccountDetailPage() {
             Add transaction
           </button>
         </div>
+   
         <TransactionsList key={refreshKey} accountId={accountId} />
       </main>
     </RequireAuth>
