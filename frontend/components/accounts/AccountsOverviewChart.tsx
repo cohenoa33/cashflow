@@ -51,8 +51,7 @@ export default function AccountsOverviewChart({ accounts }: Props) {
             <Legend />
             {/* ✅ Current = green */}
             <Bar dataKey="current" name="Current" fill="#47d5a6" />
-            {/* ✅ Forecast = blue */}
-            <Bar dataKey="forecast" name="Forecast" fill="#22946e" />
+            <Bar dataKey="forecast" name="Forecast" />
           </BarChart>
         </ResponsiveContainer>
       </div>
