@@ -6,7 +6,8 @@ import { api } from "@/lib/api";
 import { saveToken } from "@/lib/auth";
 import { handleError } from "@/lib/error";
 import { PASSWORD_REGEX } from "@/lib/password";
-import PasswordInput from "@/components/PasswordInput";
+import PasswordInput from "@/components/ui/PasswordInput";
+import Button from "@/components/ui/Button";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -57,28 +58,24 @@ export default function RegisterPage() {
 
         <label className="block">
           <span className="text-sm">Password</span>
-             <PasswordInput
-             maxHeight
-                                 value={password}
-                                 onChange={(v) => {
-                                   setPassword(v);
-                                   setNewTouched(true);
-                                 }}
-                                 invalid={invalid}
-                                 placeholder="Current password"
-                               />
+          <PasswordInput
+            maxHeight
+            value={password}
+            onChange={(v) => {
+              setPassword(v);
+              setNewTouched(true);
+            }}
+            invalid={invalid}
+            placeholder="Current password"
+          />
         </label>
 
         {err && <p className="text-sm text-red-600">{err}</p>}
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-60"
-        >
-          {busy ? "Creating..." : "Create account"}
-        </button>
 
+        <Button disabled={busy} type="submit" className="w-full text-base">
+          {busy ? "Creating..." : "Create Account"}
+        </Button>
         <p className="text-sm text-center">
           Already have an account?{" "}
           <a className="underline" href="/login">

@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Account } from "@/types/api";
 import { handleError } from "@/lib/error";
-import AccountsOverviewChart, {
-  AccountOverviewItem
-} from "./AccountsOverviewChart";
-export default function AccountsList() {
+import AccountsOverviewChart from "./AccountsOverviewChart";
+import Button from "@/components/ui/Button";
+export default function AccountsList({openPopup}:{openPopup:()=>void}) {
   const [items, setItems] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -30,14 +29,22 @@ export default function AccountsList() {
   }, []);
 
   if (loading) return <p>Loading…</p>;
-  if (err) return <p className="text-red-600">{err}</p>;
+  if (err) return <p className="text-danger">{err}</p>;
 
   if (items.length === 0) {
-    return <p className="text-gray-500">No accounts yet.</p>;
+    return    <div>
+      <div className="flex items-center mt-4">
+        <Button onClick={openPopup} className="ml-auto">
+          Add Account
+        </Button>
+      </div>
+        <div> No accounts yet</div>
+
+    </div>;
   }
 
   return (
-    <ul className="divide-y rounded-xl border">
+    <>
       <AccountsOverviewChart
         accounts={items.map((a) => ({
           id: a.id,
@@ -49,25 +56,34 @@ export default function AccountsList() {
               : undefined
         }))}
       />
+      <div className="flex flex-col">
+        <div className="flex items-center mt-4">
+          <Button onClick={openPopup} className="ml-auto">
+            Add Account
+          </Button>
+        </div>
 
-      {items.map((a) => (
-        <li key={a.id} className="flex items-center justify-between p-4">
-          <div>
-            <div className="font-medium">{a.name}</div>
-            <div className="text-sm text-gray-500">
-              {a.currency} • Current: {String(a.currentBalance)} • Forecast:{" "}
-              {String(a.forecastBalance)}
-            </div>
-          </div>
-          <a
-            className="text-sm underline"
-            href={`/accounts/${a.id}`}
-            title="View account"
-          >
-            Open
-          </a>
-        </li>
-      ))}
-    </ul>
+        <ul className="divide-y rounded-xl border mt-4">
+          {items.map((a) => (
+            <li key={a.id} className="flex items-center justify-between p-4 ">
+              <div>
+                <div className="font-medium">{a.name}</div>
+                <div className="text-sm text-primary">
+                  {a.currency} • Current: {String(a.currentBalance)} • Forecast:{" "}
+                  {String(a.forecastBalance)}
+                </div>
+              </div>
+              <a
+                className="text-sm underline"
+                href={`/accounts/${a.id}`}
+                title="View account"
+              >
+                Open
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 }

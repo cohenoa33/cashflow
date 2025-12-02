@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { saveToken } from "@/lib/auth";
 import { handleError } from "@/lib/error";
-import PasswordInput from "@/components/PasswordInput";
+import PasswordInput from "@/components/ui/PasswordInput";
+import Button from "@/components/ui/Button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -67,13 +68,13 @@ export default function LoginPage() {
 
         {err && <p className="text-sm text-red-600">{err}</p>}
 
-        <button
-          type="submit"
+        <Button
           disabled={busy}
-          className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-60"
+          type="submit"
+          className="w-full text-base"
         >
           {busy ? "Signing in..." : "Sign in"}
-        </button>
+        </Button>
 
         <p className="text-sm text-center">
           No account?{" "}

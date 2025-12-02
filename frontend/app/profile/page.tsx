@@ -6,7 +6,8 @@ import NavBar from "@/components/NavBar";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
 import { PASSWORD_REGEX } from "@/lib/password";
-import PasswordInput from "@/components/PasswordInput";
+import PasswordInput from "@/components/ui/PasswordInput";
+import Button from "@/components/ui/Button";
 
 type UserInfo = {
   id: number;
@@ -108,6 +109,7 @@ export default function ProfilePage() {
       setUser(updated);
       setEditing(false);
       setProfileSuccess("Profile updated successfully");
+      setTimeout(() => setProfileSuccess(null), 5000);
     } catch (e) {
       // error id 8: "Failed to update profile"
       setError(handleError(e, 8));
@@ -208,50 +210,34 @@ function handleCancelChangePassword() {
       <main className="mx-auto max-w-3xl px-4 py-6 space-y-6">
         <h1 className="text-2xl font-semibold">Profile</h1>
 
-        {loading && <p className="text-sm text-slate-500">Loading profile…</p>}
-
-        {error && <p className="text-sm text-red-600">{error}</p>}
-
-        {profileSuccess && !loading && (
-          <p className="text-sm text-green-600">{profileSuccess}</p>
-        )}
+        {loading && <p className="text-sm text-primary">Loading profile…</p>}
 
         {user && (
           <>
             {/* Profile info + edit */}
-            <section className="space-y-3 rounded-md border bg-white p-4">
+            <section className="space-y-3 rounded-md border p-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium">Account details</h2>
+                <h2 className="text-lg font-bold">Personal Info</h2>
                 {!editing ? (
-                  <button
-                    type="button"
+                  <Button
                     onClick={() => {
                       setEditing(true);
                       setProfileSuccess(null);
                       setError(null);
                     }}
-                    className="text-sm rounded-md border px-3 py-1 hover:bg-slate-50"
                   >
                     Edit
-                  </button>
+                  </Button>
                 ) : (
                   <div className="flex gap-2">
-                    <button
-                      type="button"
+                    <Button
+                      variant="accent"
                       onClick={handleProfileCancel}
                       disabled={profileSaving}
-                      className="text-sm rounded-md border px-3 py-1 hover:bg-slate-50 disabled:opacity-60"
+                      className=" mt-2"
                     >
                       Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleProfileSave}
-                      disabled={profileSaving}
-                      className="text-sm rounded-md bg-slate-900 px-3 py-1 text-white hover:bg-slate-800 disabled:opacity-60"
-                    >
-                      {profileSaving ? "Saving…" : "Save"}
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -333,17 +319,31 @@ function handleCancelChangePassword() {
                     )}
                   </div>
                 </div>
+                {editing && (
+                  <Button
+                    onClick={handleProfileSave}
+                    disabled={profileSaving}
+                    className="mt-2 w-full"
+                  >
+                    {profileSaving ? "Saving…" : "Save"}
+                  </Button>
+                )}
               </div>
+              {error && <p className="text-sm text-danger">{error}</p>}
+              {profileSuccess && !loading && (
+                <p className="text-sm text-success transition-opacity duration-500">
+                  {profileSuccess}
+                </p>
+              )}
             </section>
 
             {/* Change password */}
-            <section className="space-y-3 rounded-md border bg-white p-4">
+            <section className="space-y-3 rounded-md border p-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium">Change password</h2>
+                <h2 className="text-lg font-bold">Account Security</h2>
 
                 {!changingPassword ? (
-                  <button
-                    type="button"
+                  <Button
                     onClick={() => {
                       setChangingPassword(true);
                       setPasswordError(null);
@@ -352,28 +352,20 @@ function handleCancelChangePassword() {
                       setNewTouched(false);
                       setConfirmTouched(false);
                     }}
-                    className="text-sm rounded-md border px-3 py-1 hover:bg-slate-50"
                   >
                     Change password
-                  </button>
+                  </Button>
                 ) : (
-                  <button
-                    type="button"
+                  <Button
+                    variant="accent"
                     onClick={handleCancelChangePassword}
                     disabled={passwordBusy}
-                    className="text-sm rounded-md border px-3 py-1 hover:bg-slate-50 disabled:opacity-60"
+                    className="mt-2"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 )}
               </div>
-
-              {passwordError && (
-                <p className="text-sm text-red-600">{passwordError}</p>
-              )}
-              {passwordSuccess && (
-                <p className="text-sm text-green-600">{passwordSuccess}</p>
-              )}
 
               {changingPassword && (
                 <form className="space-y-3" onSubmit={handleChangePassword}>
@@ -436,13 +428,20 @@ function handleCancelChangePassword() {
                     </div>
                   </div>
 
-                  <button
+                  <Button
                     type="submit"
                     disabled={passwordBusy}
-                    className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+                    className="mt-2 w-full"
                   >
                     {passwordBusy ? "Saving…" : "Update password"}
-                  </button>
+                  </Button>
+
+                  {passwordError && (
+                    <p className="text-sm text-red-600">{passwordError}</p>
+                  )}
+                  {passwordSuccess && (
+                    <p className="text-sm text-green-600">{passwordSuccess}</p>
+                  )}
                 </form>
               )}
             </section>

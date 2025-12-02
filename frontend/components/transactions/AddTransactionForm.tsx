@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
 import { dateAtTenAMLocal, getTodayDateString } from "@/lib/date";
+import Button from "@/components/ui/Button";
 
 export default function AddTransactionForm({
   accountId,
-  onCreated
+  onCreated, close  
 }: {
   accountId: number;
   onCreated?: () => void;
+  close: () => void;
 }) {
   const [amount, setAmount] = useState<string>("");
   const [type, setType] = useState("EXPENSE");
@@ -71,7 +73,7 @@ export default function AddTransactionForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3 rounded-xl border p-4">
+    <form onSubmit={onSubmit} className="space-y-3 rounded-xl  p-4">
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="text-sm">Amount</label>
@@ -137,18 +139,15 @@ export default function AddTransactionForm({
       </div>
 
       {err && <p className="text-sm text-red-600">{err}</p>}
-
-      <button
-        type="submit"
-        disabled={disabled}
-        className={`inline-flex items-center rounded-md px-4 py-2 shadow focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          disabled
-            ? "bg-blue-300 text-white cursor-not-allowed"
-            : "bg-blue-600 text-white hover:bg-blue-700"
-        }`}
-      >
+      <Button disabled={disabled} type="submit" className="w-full text-base">
         {busy ? "Adding…" : "Add"}
-      </button>
+      </Button>
+
+      <Button
+      variant="accent"
+      type="button" onClick={close} className="w-full mt-2">
+        Cancel
+      </Button>
     </form>
   );
 }

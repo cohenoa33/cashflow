@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
+import Button from "@/components/ui/Button";
 
 export default function DeleteAccountButton({ id }: { id: number }) {
   const router = useRouter();
@@ -26,14 +27,11 @@ export default function DeleteAccountButton({ id }: { id: number }) {
 
   return (
     <div className="flex flex-col items-end gap-2">
-      <button
-        onClick={onDelete}
-        disabled={busy}
-        className="rounded-lg bg-red-500 px-4 py-2 text-white disabled:opacity-60"
-      >
+      <Button onClick={onDelete} disabled={busy} className="bg-danger">
         {busy ? "Deleting…" : "Delete account"}
-      </button>
-      {err && <p className="text-sm text-red-600">{err}</p>}
+      </Button>
+     
+      {err && <p className="text-sm text-danger">{err}</p>}
     </div>
   );
 }

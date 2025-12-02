@@ -34,9 +34,9 @@ export default function AccountsOverviewChart({ accounts }: Props) {
   }));
 
   return (
-    <div className="rounded-md border bg-white p-4">
-      <h2 className="mb-2 text-lg font-medium">Accounts overview</h2>
-      <p className="mb-4 text-xs text-slate-500">
+    <div className="rounded-md border p-4">
+      <h2 className="mb-2 text-lg font-bold">Accounts overview</h2>
+      <p className="mb-4 text-xs text-accent">
         Current vs forecast balances per account
       </p>
       <div className="h-72">
@@ -50,8 +50,8 @@ export default function AccountsOverviewChart({ accounts }: Props) {
             <Tooltip />
             <Legend />
             {/* ✅ Current = green */}
-            <Bar dataKey="current" name="Current" fill="#47d5a6" />
-            <Bar dataKey="forecast" name="Forecast" />
+            <Bar dataKey="current" name="Current" fill="#5f6160" />
+            <Bar dataKey="forecast" name="Forecast" fill="#919392" />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -4,10 +4,11 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import type { Account } from "@/types/api";
 import { handleError } from "@/lib/error";
+import Button from "@/components/ui/Button";
 
-type Props = { onCreated?: (a: Account) => void };
+type Props = { onCreated?: (a: Account) => void; close: () => void };
 
-export default function CreateAccountForm({ onCreated }: Props) {
+export default function CreateAccountForm({ onCreated, close }: Props) {
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [startingBalance, setStartingBalance] = useState<number | "">("");
@@ -109,13 +110,14 @@ export default function CreateAccountForm({ onCreated }: Props) {
 
       {err && <p className="text-sm text-red-600">{err}</p>}
 
-      <button
-        type="submit"
-        disabled={busy}
-        className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        {busy ? "Creating…" : "Create"}
-      </button>
+      <Button disabled={busy} type="submit" className=" w-full ">
+        {busy ? "Saving…" : "Save"}
+      </Button>
+      <Button 
+      variant="accent"
+      type="button" onClick={close} className="w-full mt-2">
+        Cancel
+      </Button>
     </form>
   );
 }

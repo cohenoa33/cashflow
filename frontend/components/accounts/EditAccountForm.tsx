@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
+import Button from "@/components/ui/Button";
 
 type EditableAccount = {
   id: number;
@@ -14,10 +15,12 @@ type EditableAccount = {
 
 export default function EditAccountForm({
   account,
-  onSaved
+  onSaved,
+  close
 }: {
   account: EditableAccount;
   onSaved?: (updated: EditableAccount) => void;
+  close: () => void;
 }) {
   const [name, setName] = useState(account.name);
   const [currency, setCurrency] = useState(account.currency ?? "USD");
@@ -93,14 +96,21 @@ export default function EditAccountForm({
       </div>
 
       {err && <p className="text-sm text-red-600">{err}</p>}
-
-      <button
-        type="submit"
+      <Button
         disabled={busy}
-        className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        type="submit"
+        className="w-full text-base"
       >
-        {busy ? "Saving…" : "Save changes"}
-      </button>
+        {busy ? "Saving…" : "Save Changes"}
+      </Button>
+      <Button
+        type="button"
+        onClick={close}
+        className="w-full mt-2"
+        variant="accent"
+      >
+        Cancel
+      </Button>
     </form>
   );
 }

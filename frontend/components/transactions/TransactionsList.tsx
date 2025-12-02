@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
+import Button from "@/components/ui/Button";
 
 type Transaction = {
   id: number;
@@ -224,37 +225,29 @@ export default function TransactionsList({ accountId }: Props) {
               <div className="col-span-1 flex items-center justify-end gap-2">
                 {isEditing ? (
                   <>
-                    <button
+                    <Button
                       onClick={() => saveEdit(t.id)}
                       disabled={busyRow === t.id}
-                      // rounded bg-black px-3 py-1 text-white disabled:opacity-60    ? "bg-blue-300 text-white cursor-not-allowed"
-                      // : "bg-blue-600 text-white hover:bg-blue-700"
-                      className={`rounded bg-black px-3 py-1 text-white disabled:opacity-60 border`}
+                      className="bg-danger px-1.5 "
                     >
                       {busyRow === t.id ? "Saving…" : "Save"}
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="rounded border px-3 py-1"
-                    >
+                    </Button>
+                    <Button className="px-1.5" onClick={cancelEdit}>
                       Cancel
-                    </button>
+                    </Button>
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={() => startEdit(t)}
-                      className="rounded border px-3 py-1"
-                    >
+                    <Button className="px-1.5" onClick={() => startEdit(t)}>
                       Edit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => remove(t.id)}
                       disabled={busyRow === t.id}
-                      className="rounded bg-red-500 px-3 py-1 text-white disabled:opacity-60"
+                      className="bg-danger px-1.5"
                     >
                       {busyRow === t.id ? "Deleting…" : "Delete"}
-                    </button>
+                    </Button>
                   </>
                 )}
               </div>

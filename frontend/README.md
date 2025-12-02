@@ -57,7 +57,7 @@ npm start
 frontend/
 ├─ app/
 │  ├─ layout.tsx                 # Root layout, imports ./globals.css
-│  ├─ page.tsx                   # Home (protected)
+│  ├─ page.tsx                   # Home (protected, redirect to accounts)
 │  ├─ login/page.tsx             # Login form
 │  ├─ register/page.tsx          # Register form
 │  └─ accounts/
@@ -65,19 +65,24 @@ frontend/
 │     └─ [id]/page.tsx           # Account details + transactions (protected)
 ├─ components/
 │  ├─ RequireAuth.tsx            # Client-side route guard
-│  ├─ LogoutButton.tsx
 │  ├─ accounts/
 │  │  ├─ AccountsList.tsx
 │  │  ├─ CreateAccountForm.tsx
 │  │  ├─ EditAccountForm.tsx
 │  │  └─ DeleteAccountButton.tsx
-│  └─ transactions/
-│     ├─ AddTransactionForm.tsx
-│     └─ TransactionsList.tsx
+│  ├─ transactions/
+│  │  ├─ AddTransactionForm.tsx
+│  │  └─ TransactionsList.tsx
+│  ├─ ai/
+│  │  ├─ Button.tsx
+│  │  ├─ Modal.tsx
+│  │  └─ PasswordInput.tsx
 ├─ lib/
 │  ├─ api.ts                     # fetch wrapper (adds Authorization header)
 │  ├─ auth.ts                    # token save/get/clear + helpers
-│  └─ error.ts                   # normalize error messages
+│  ├─ date.ts                    # format date helpers
+│  ├─ error.ts                   # normalize error messages
+│  └─ password.ts                # PASSWORD_REGEX
 ├─ types/
 │  └─ api.ts                     # shared API types (frontend-only)
 ├─ app/globals.css               # Tailwind base styles

@@ -12,6 +12,7 @@ import DeleteAccountButton from "@/components/accounts/DeleteAccountButton";
 import PopupModal from "@/components/ui/Modal";
 import AccountBalanceChart from "@/components/accounts/AccountBalanceChart";
 import NavBar from "@/components/NavBar";
+import Button from "@/components/ui/Button";
 
 type Tx = {
   id: number;
@@ -73,7 +74,6 @@ export default function AccountDetailPage() {
           <h1 className="text-2xl font-semibold">
             {account ? account.name : "Account"}
           </h1>
-        
         </header>
 
         {loading && <p>Loading…</p>}
@@ -90,13 +90,10 @@ export default function AccountDetailPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditOpen(true)}
-                  className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Edit account
-                </button>
+                <Button onClick={() => setIsEditOpen(true)} >
+                  Edit Account
+                </Button>
+
                 <DeleteAccountButton id={account.id} />
               </div>
             </header>
@@ -106,7 +103,7 @@ export default function AccountDetailPage() {
             />
             {isEditOpen && (
               <PopupModal
-                label="Edit account"
+                label="Edit Account"
                 close={() => setIsEditOpen(false)}
               >
                 <EditAccountForm
@@ -122,6 +119,7 @@ export default function AccountDetailPage() {
                     setRefreshKey((k) => k + 1);
                     setIsEditOpen(false);
                   }}
+                  close={() => setIsEditOpen(false)}
                 />
               </PopupModal>
             )}
@@ -136,20 +134,18 @@ export default function AccountDetailPage() {
                 setIsAddOpen(false);
                 setRefreshKey((k) => k + 1);
               }}
+              close={() => setIsAddOpen(false)} 
             />
           </PopupModal>
         )}
 
         {/* Add transaction button + modal */}
         <div className="flex justify-end">
-          <button
-            onClick={() => setIsAddOpen(true)}
-            className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Add transaction
-          </button>
+          <Button onClick={() => setIsAddOpen(true)} >
+            Add Transaction
+          </Button>
         </div>
-   
+
         <TransactionsList key={refreshKey} accountId={accountId} />
       </main>
     </RequireAuth>

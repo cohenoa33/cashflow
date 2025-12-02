@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logout } from "@/lib/auth";
+import Button from  "@/components/ui/Button"
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -14,18 +15,15 @@ export default function NavBar() {
   }
 
   const linkClass = (href: string) =>
-    `px-3 py-2 rounded-md text-sm text-slate-100 ${
-      pathname === href ? " font-extrabold" : " hover:underline"
+    `px-3 py-2 rounded-md text-sm text-primary ${
+      pathname === href ? " font-extrabold" : " hover:text-accent "
     }`;
 
   return (
-    <nav className="w-full border-b bg-gray shadow-sm">
+    <nav className="w-full bg-gray shadow-sm">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-4">
-          <Link
-            href="/accounts"
-            className="text-lg font-semibold text-slate-400"
-          >
+          <Link href="/accounts" className="text-lg font-semibold text-success">
             Cashflow
           </Link>
 
@@ -38,14 +36,9 @@ export default function NavBar() {
             </Link>
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded-md border px-3 py-1 text-sm bg-slate-700 hover:bg-slate-100"
-        >
-          Logout
-        </button>
+        {/* TODO: change this to be dropdown with option to profile/ logout */}
+    
+        <Button onClick={handleLogout}>Logout</Button>
       </div>
     </nav>
   );
