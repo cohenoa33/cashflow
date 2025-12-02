@@ -1,22 +1,63 @@
-@import "tailwindcss";
+/* frontend/app/globals.css */
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+
+
+  /** Theme primary colors */
+  --clr-primary-a0: #8da397;
+  --clr-primary-a10: #99ada2;
+  --clr-primary-a20: #a5b7ad;
+  --clr-primary-a30: #b2c1b9;
+  --clr-primary-a40: #becbc4;
+  --clr-primary-a50: #cbd5d0;
+
+  /** Theme surface colors */
+  --clr-surface-a0: #121212;
+  --clr-surface-a10: #282828;
+  --clr-surface-a20: #3f3f3f;
+  --clr-surface-a30: #575757;
+  --clr-surface-a40: #717171;
+  --clr-surface-a50: #8b8b8b;
+
+  /** Theme tonal surface colors */
+  --clr-surface-tonal-a0: #1d1f1e;
+  --clr-surface-tonal-a10: #323433;
+  --clr-surface-tonal-a20: #484a49;
+  --clr-surface-tonal-a30: #5f6160;
+  --clr-surface-tonal-a40: #787979;
+  --clr-surface-tonal-a50: #919392;
+
+  /** Success colors */
+  --clr-success-a0: #22946e;
+  --clr-success-a10: #47d5a6;
+  --clr-success-a20: #9ae8ce;
+
+  /** Warning colors */
+  --clr-warning-a0: #a87a2a;
+  --clr-warning-a10: #d7ac61;
+  --clr-warning-a20: #ecd7b2;
+
+  /** Danger colors */
+  --clr-danger-a0: #9c2121;
+  --clr-danger-a10: #d94a4a;
+  --clr-danger-a20: #eb9e9e;
+
+  /** Info colors */
+  --clr-info-a0: #21498a;
+  --clr-info-a10: #4077d1;
+  --clr-info-a20: #92b2e5;
+
+  --background: #becbc4;
+  --foreground: #282828;
 }
- 
+
 :root[data-theme="inline"] {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
