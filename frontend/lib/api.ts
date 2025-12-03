@@ -22,8 +22,15 @@ export async function api<T>(
   if (res.status === 401) {
 
     if (typeof window !== "undefined") {
-      localStorage.removeItem("cf_token");
-      window.location.href = "/login";
+
+        const isAuthPage =
+          typeof window !== "undefined" &&
+          (window.location.pathname === "/login" ||
+            window.location.pathname === "/register");
+            if (!isAuthPage) {
+              localStorage.removeItem("cf_token")
+
+      window.location.href = "/login";}
     }
   }
   let message = res.statusText;
