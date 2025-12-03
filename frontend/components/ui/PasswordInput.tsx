@@ -36,8 +36,8 @@ export default function PasswordInput({
         className={clsx(
           className,
           invalid
-            ? "border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
-            : "border-slate-300"
+            ? "border-danger focus:outline-none focus:ring-1 focus:ring-danger"
+            : "border-slate-300 focus:outline-none"
         )}
       />
 

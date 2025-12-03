@@ -43,11 +43,10 @@ export default function RegisterPage() {
         className="w-full max-w-sm space-y-4 rounded-2xl border p-6 shadow"
       >
         <h1 className="text-2xl font-semibold">Create account</h1>
-
         <label className="block">
           <span className="text-sm">Email</span>
           <input
-            className="mt-1 w-full rounded-lg border p-2"
+            className="mt-1 w-full rounded-lg border p-2 focus:outline-none "
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -55,7 +54,6 @@ export default function RegisterPage() {
             required
           />
         </label>
-
         <label className="block">
           <span className="text-sm">Password</span>
           <PasswordInput
@@ -66,13 +64,18 @@ export default function RegisterPage() {
               setNewTouched(true);
             }}
             invalid={invalid}
-            placeholder="Current password"
+            placeholder="Create password"
           />
-        </label>
-
+        </label>{" "}
+        <p
+          className={`mt-1 text-xs ${
+            invalid ? "text-danger" : "text-stale-500"
+          }`}
+        >
+          At least 8 characters, with uppercase, lowercase, number, and a
+          special character.
+        </p>
         {err && <p className="text-sm text-red-600">{err}</p>}
-
-
         <Button disabled={busy} type="submit" className="w-full text-base">
           {busy ? "Creating..." : "Create Account"}
         </Button>
