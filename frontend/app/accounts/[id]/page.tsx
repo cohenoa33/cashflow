@@ -13,6 +13,7 @@ import PopupModal from "@/components/ui/Modal";
 import AccountBalanceChart from "@/components/accounts/AccountBalanceChart";
 import NavBar from "@/components/NavBar";
 import Button from "@/components/ui/Button";
+import { formatCurrency } from "@/lib/currency";
 
 type Tx = {
   id: number;
@@ -84,13 +85,20 @@ export default function AccountDetailPage() {
             <header className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">
-                  Currency: {account.currency} • Current:{" "}
-                  {String(account.currentBalance)} • Forecast:{" "}
-                  {String(account.forecastBalance)}
+                  Current:{" "}
+                  {formatCurrency(
+                    Number(account.currentBalance ?? 0),
+                    account.currency
+                  )}{" "}
+                  • Forecast:{" "}
+                  {formatCurrency(
+                    Number(account.forecastBalance ?? 0),
+                    account.currency
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <Button onClick={() => setIsEditOpen(true)} >
+                <Button onClick={() => setIsEditOpen(true)}>
                   Edit Account
                 </Button>
 
@@ -134,19 +142,21 @@ export default function AccountDetailPage() {
                 setIsAddOpen(false);
                 setRefreshKey((k) => k + 1);
               }}
-              close={() => setIsAddOpen(false)} 
+              close={() => setIsAddOpen(false)}
             />
           </PopupModal>
         )}
 
         {/* Add transaction button + modal */}
         <div className="flex justify-end">
-          <Button onClick={() => setIsAddOpen(true)} >
-            Add Transaction
-          </Button>
+          <Button onClick={() => setIsAddOpen(true)}>Add Transaction</Button>
         </div>
 
-        <TransactionsList key={refreshKey} accountId={accountId} />
+        <TransactionsList
+          key={refreshKey}
+          accountId={accountId}
+          currency={account?.currency || "USD"}
+        />
       </main>
     </RequireAuth>
   );

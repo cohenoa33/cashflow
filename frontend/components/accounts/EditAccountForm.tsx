@@ -4,6 +4,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
 import Button from "@/components/ui/Button";
+import { CurrencyList } from "@/lib/currency";
 
 type EditableAccount = {
   id: number;
@@ -51,6 +52,8 @@ export default function EditAccountForm({
     }
   }
 
+  const currencyInList = CurrencyList.some((c) => c.code === currency);
+
   return (
     <form onSubmit={onSubmit} className="space-y-3 rounded-xl p-4">
       <div className="grid grid-cols-2 gap-3">
@@ -63,14 +66,24 @@ export default function EditAccountForm({
             required
           />
         </div>
+
         <div>
           <label className="text-sm">Currency</label>
-          <input
-            className="mt-1 w-full rounded-lg border p-2"
+          <select
+            className="mt-1 w-full rounded-lg border p-2 bg-white"
             value={currency}
-            onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-            placeholder="USD"
-          />
+            onChange={(e) => setCurrency(e.target.value)}
+          >
+            {/* If an existing account has a non-standard currency, still show it */}
+            {!currencyInList && currency && (
+              <option value={currency}>{currency}</option>
+            )}
+            {CurrencyList.map((c) => (
+              <option key={c.code} value={c.code}>
+             {c.name} ({c.symbol} {c.code})
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -95,14 +108,12 @@ export default function EditAccountForm({
         />
       </div>
 
-      {err && <p className="text-sm text-red-600">{err}</p>}
-      <Button
-        disabled={busy}
-        type="submit"
-        className="w-full text-base"
-      >
+      {err && <p className="text-sm text-danger">{err}</p>}
+
+      <Button disabled={busy} type="submit" className="w-full text-base">
         {busy ? "Saving…" : "Save Changes"}
       </Button>
+
       <Button
         type="button"
         onClick={close}

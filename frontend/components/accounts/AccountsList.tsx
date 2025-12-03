@@ -6,6 +6,7 @@ import type { Account } from "@/types/api";
 import { handleError } from "@/lib/error";
 import AccountsOverviewChart from "./AccountsOverviewChart";
 import Button from "@/components/ui/Button";
+import { formatCurrency } from "@/lib/currency";
 export default function AccountsList({openPopup}:{openPopup:()=>void}) {
   const [items, setItems] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,8 +70,10 @@ export default function AccountsList({openPopup}:{openPopup:()=>void}) {
               <div>
                 <div className="font-medium">{a.name}</div>
                 <div className="text-sm text-primary">
-                  {a.currency} • Current: {String(a.currentBalance)} • Forecast:{" "}
-                  {String(a.forecastBalance)}
+                  Current:{" "}
+                  {formatCurrency(Number(a.currentBalance ?? 0), a.currency)} •
+                  Forecast:{" "}
+                  {formatCurrency(Number(a.forecastBalance ?? 0), a.currency)}
                 </div>
               </div>
               <a

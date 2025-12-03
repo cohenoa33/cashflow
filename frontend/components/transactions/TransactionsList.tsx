@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
 import Button from "@/components/ui/Button";
+import { formatCurrency } from "@/lib/currency";
 
 type Transaction = {
   id: number;
@@ -17,9 +18,9 @@ type Transaction = {
   accountId: number;
 };
 
-type Props = { accountId: number };
+type Props = { accountId: number; currency: string };
 
-export default function TransactionsList({ accountId }: Props) {
+export default function TransactionsList({ accountId, currency }: Props) {
   const [items, setItems] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -42,16 +43,16 @@ export default function TransactionsList({ accountId }: Props) {
       !form.date
   );
 
-    useEffect(() => {
-      setDisabled(
-        busyRow !== null ||
-          !form.amount ||
-          Number(form.amount) === 0 ||
-          !form.category ||
-          !form.description ||
-          !form.date
-      );
-    }, [busyRow, form]);
+  useEffect(() => {
+    setDisabled(
+      busyRow !== null ||
+        !form.amount ||
+        Number(form.amount) === 0 ||
+        !form.category ||
+        !form.description ||
+        !form.date
+    );
+  }, [busyRow, form]);
   useEffect(() => {
     if (!Number.isFinite(accountId)) return;
 
@@ -90,31 +91,31 @@ export default function TransactionsList({ accountId }: Props) {
 
   async function saveEdit(id: number) {
     if (disabled) return;
-      try {
-        setBusyRow(id);
-        setErr(null);
+    try {
+      setBusyRow(id);
+      setErr(null);
 
-        await api(`/transactions/${id}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            amount: Number(form.amount),
-            category: form.category || undefined,
-            description: form.description || undefined,
-            date: ymdAtTenAMLocal(form.date) // normalize to 10:00 local
-          })
-        });
+      await api(`/transactions/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          amount: Number(form.amount),
+          category: form.category || undefined,
+          description: form.description || undefined,
+          date: ymdAtTenAMLocal(form.date) // normalize to 10:00 local
+        })
+      });
 
-        // refresh list (simple approach)
-        const res = await api<Transaction[]>(
-          `/transactions/by-account/${accountId}`
-        );
-        setItems(res);
-        cancelEdit();
-      } catch (e) {
-        setErr(handleError(e, 4));
-      } finally {
-        setBusyRow(null);
-      }
+      // refresh list (simple approach)
+      const res = await api<Transaction[]>(
+        `/transactions/by-account/${accountId}`
+      );
+      setItems(res);
+      cancelEdit();
+    } catch (e) {
+      setErr(handleError(e, 4));
+    } finally {
+      setBusyRow(null);
+    }
   }
 
   async function remove(id: number) {
@@ -171,7 +172,10 @@ export default function TransactionsList({ accountId }: Props) {
                     }
                   />
                 ) : (
-                  <span>{String(t.amount)}</span>
+                  <span>   {formatCurrency(
+                                      Number(t.amount ?? 0),
+                                      currency
+                                    )}</span>
                 )}
               </div>
 

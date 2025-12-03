@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import type { Account } from "@/types/api";
 import { handleError } from "@/lib/error";
 import Button from "@/components/ui/Button";
+import { CurrencyList } from "@/lib/currency";
 
 type Props = { onCreated?: (a: Account) => void; close: () => void };
 
@@ -63,12 +64,18 @@ export default function CreateAccountForm({ onCreated, close }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-sm">Currency</label>
-          <input
-            className="mt-1 w-full rounded-lg border p-2"
+
+          <select
+            className="mt-1 w-full rounded-lg border p-2 bg-white"
             value={currency}
-            onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-            placeholder="USD"
-          />
+            onChange={(e) => setCurrency(e.target.value)}
+          >
+            {CurrencyList.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.code} — {c.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="text-sm">Starting balance</label>
@@ -113,9 +120,12 @@ export default function CreateAccountForm({ onCreated, close }: Props) {
       <Button disabled={busy} type="submit" className=" w-full ">
         {busy ? "Saving…" : "Save"}
       </Button>
-      <Button 
-      variant="accent"
-      type="button" onClick={close} className="w-full mt-2">
+      <Button
+        variant="accent"
+        type="button"
+        onClick={close}
+        className="w-full mt-2"
+      >
         Cancel
       </Button>
     </form>
