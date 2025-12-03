@@ -4,6 +4,7 @@ import { canViewAccount, isOwner, } from "../helpers";
 import { Router } from "express";
 import type { AuthenticatedRequest } from "../types/express";
 import { buildBalanceSummary, makeAccountWithSummary } from "../helpers/accounts";
+import { CurrencySymbols, CurrencyNames } from "../utils/currency";
 
 export const accountRouter = Router();
 
@@ -20,6 +21,11 @@ accountRouter.post("/", async (req: AuthenticatedRequest, res: Response) => {
     notes,
     startingBalance = 0
   } = req.body || {};
+
+  if (!CurrencySymbols[currency]) {
+    return res.status(400).json({ error: "Unsupported currency" });
+  }
+
   if (!name) return res.status(400).json({ error: "name required" });
 
   const account = await prisma.account.create({
@@ -130,6 +136,10 @@ accountRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response) => 
   if (description !== undefined) data.description = description;
   if (name !== undefined) data.name = name;
   if (currency !== undefined) data.currency = currency;
+
+    if (!CurrencySymbols[currency]) {
+      return res.status(400).json({ error: "Unsupported currency" });
+    }
 
   const account = await prisma.account.update({
     where: { id: accountId },
