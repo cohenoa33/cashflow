@@ -7,6 +7,9 @@ import { handleError } from "@/lib/error";
 import AccountsOverviewChart from "./AccountsOverviewChart";
 import Button from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/currency";
+import { accountUrl } from "@/lib/slug";
+
+
 export default function AccountsList({openPopup}:{openPopup:()=>void}) {
   const [items, setItems] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +81,7 @@ export default function AccountsList({openPopup}:{openPopup:()=>void}) {
               </div>
               <a
                 className="text-sm underline"
-                href={`/accounts/${a.id}`}
+                href={accountUrl(a.id, a.name)}
                 title="View account"
               >
                 Open

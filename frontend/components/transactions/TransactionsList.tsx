@@ -18,9 +18,19 @@ type Transaction = {
   accountId: number;
 };
 
-type Props = { accountId: number; currency: string };
+type Props = {
+  accountId: number;
+  currency: string;
+  setIsAddOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsImportOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
-export default function TransactionsList({ accountId, currency }: Props) {
+export default function TransactionsList({
+  accountId,
+  currency,
+  setIsImportOpen,
+  setIsAddOpen
+}: Props) {
   const [items, setItems] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -141,9 +151,26 @@ export default function TransactionsList({ accountId, currency }: Props) {
 
   return (
     <section className="space-y-2 rounded-xl border p-4">
-      <h2 className="text-lg font-semibold">Transactions</h2>
+      <h2 className="text-lg font-semibold"></h2>
+      <div className="flex justify-end gap-4 text-sm pb-4">
+        <button
+          type="button"
+          className={"text-gray-500 hover:underline"}
+          onClick={() => setIsAddOpen(true)}
+        >
+          Add transaction
+        </button>
+        <span className="text-gray-400">|</span>
+        <button
+          type="button"
+          className={"text-gray-500 hover:underline"}
+          onClick={() => setIsImportOpen(true)}
+        >
+          Import transactions
+        </button>
+      </div>
 
-      <div className="grid grid-cols-5 gap-2 px-2 text-xs font-medium text-gray-600">
+      <div className="grid grid-cols-5 gap-2 px-2 text-xs font-medium text-primary/70 uppercase border-b pb-2">
         <span>Amount</span>
         <span>Category</span>
         <span>Description</span>
@@ -172,10 +199,10 @@ export default function TransactionsList({ accountId, currency }: Props) {
                     }
                   />
                 ) : (
-                  <span>   {formatCurrency(
-                                      Number(t.amount ?? 0),
-                                      currency
-                                    )}</span>
+                  <span>
+                    {" "}
+                    {formatCurrency(Number(t.amount ?? 0), currency)}
+                  </span>
                 )}
               </div>
 

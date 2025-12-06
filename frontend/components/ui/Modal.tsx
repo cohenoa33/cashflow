@@ -17,7 +17,7 @@ export default function PopupModal({
       aria-label={label}
     >
       {/* Backdrop (non-dismissable by click) */}
-      <div className="absolute inset-0 bg-gray-500/30 -mt-[50px]" />
+      <div className="absolute inset-0 bg-gray-500/50 -mt-[50px]" />
 
       {/* Dialog */}
       <div
@@ -26,7 +26,7 @@ export default function PopupModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-success">{label}</h2>
+          <h2 className="text-lg font-semibold text-white">{label}</h2>
           <button
             type="button"
             aria-label="Close"

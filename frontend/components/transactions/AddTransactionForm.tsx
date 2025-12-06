@@ -8,14 +8,12 @@ import Button from "@/components/ui/Button";
 
 export default function AddTransactionForm({
   accountId,
-  onCreated, close  
+  onCreated,
 }: {
   accountId: number;
   onCreated?: () => void;
-  close: () => void;
 }) {
   const [amount, setAmount] = useState<string>("");
-  const [type, setType] = useState("EXPENSE");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState<string>(getTodayDateString())
@@ -47,6 +45,7 @@ export default function AddTransactionForm({
     e.preventDefault();
     setErr(null);
     setBusy(true);
+    const type = Number(amount) >= 0 ? "income" : "expense";
     try {
       await api(`/transactions`, {
         method: "POST",
@@ -60,7 +59,7 @@ export default function AddTransactionForm({
         })
       });
       setAmount("");
-      setType("EXPENSE");
+
       setDescription("");
       setCategory("");
       setDate("");
@@ -87,17 +86,7 @@ export default function AddTransactionForm({
             required
           />
         </div>
-        <div>
-          <label className="text-sm">Type</label>
-          <select
-            className="mt-1 w-full rounded-lg border p-2"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          >
-            <option value="EXPENSE">EXPENSE</option>
-            <option value="INCOME">INCOME</option>
-          </select>
-        </div>
+
         <div>
           <label className="text-sm">Date</label>
           <input
@@ -141,12 +130,6 @@ export default function AddTransactionForm({
       {err && <p className="text-sm text-red-600">{err}</p>}
       <Button disabled={disabled} type="submit" className="w-full text-base">
         {busy ? "Adding…" : "Add"}
-      </Button>
-
-      <Button
-      variant="accent"
-      type="button" onClick={close} className="w-full mt-2">
-        Cancel
       </Button>
     </form>
   );
