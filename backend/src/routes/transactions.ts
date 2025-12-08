@@ -2,10 +2,19 @@ import {  Response } from "express";
 import { AuthenticatedRequest } from "../types/express";
 import { prisma } from "../prisma/client";
 import { canViewAccount, isOwner, affectsBalance } from "../helpers";
-
+import { suggestCategoriesFromHistory } from "../helpers/category";
 
 
 import { Router } from "express";
+
+
+type ImportTransactionRow = {
+  date: string; // ISO or something parseable
+  amount: number; // number, positive or negative
+  description: string;
+  category: string;
+  type?: string;
+};
 
 const transactionRouter = Router();
 // POST /transactions
@@ -152,5 +161,112 @@ transactionRouter.get("/:id", async (req: AuthenticatedRequest, res: Response) =
 
   res.json(tx);
 });
+// existing export const transactionRouter = Router();
+
+transactionRouter.post("/import", async (req: AuthenticatedRequest, res: Response) => {
+  const { accountId, rows } = (req.body || {}) as {
+    accountId?: number;
+    rows?: ImportTransactionRow[];
+  };
+
+  if (!accountId || !Array.isArray(rows) || rows.length === 0) {
+    return res.status(400).json({ error: "accountId and rows are required" });
+  }
+
+  const userId = req.userId as number;
+
+  // Ensure user can import to this account
+  if (!(await canViewAccount(userId, accountId))) {
+    return res.status(403).json({ error: "not allowed for this account" });
+  }
+
+  const errors: { index: number; message: string }[] = [];
+  const parsedRows: ImportTransactionRow[] = [];
+
+  rows.forEach((row, index) => {
+    const date = new Date(row.date);
+    const amount = Number(row.amount);
+    const description = (row.description || "").trim();
+    const category = (row.category || "").trim();
+
+    if (!description) {
+      errors.push({ index, message: "Description is required" });
+      return;
+    }
+    if (!category) {
+      errors.push({ index, message: "Category is required" });
+      return;
+    }
+    if (Number.isNaN(amount)) {
+      errors.push({ index, message: "Amount must be a valid number" });
+      return;
+    }
+    if (isNaN(date.getTime())) {
+      errors.push({ index, message: "Date is invalid" });
+      return;
+    }
+const type = amount >= 0 ? "income" : "expense";
+    parsedRows.push({
+      date: date.toISOString(),
+      amount,
+      description,
+      category,
+      type
+    });
+  });
+
+  if (errors.length > 0) {
+    return res.status(400).json({ error: "Invalid rows", details: errors });
+  }
+
+  // Write to DB
+  await prisma.$transaction(async (tx) => {
+    await tx.transaction.createMany({
+      data: parsedRows.map((row) => ({
+        accountId,
+        amount: row.amount,
+        date: new Date(row.date),
+        description: row.description,
+        category: row.category, type: row.type || "expense"
+      }))
+    });
+
+    // If you have account balance recomputation logic,
+    // you can call it here for this account.
+  });
+
+  return res.json({ ok: true, imported: parsedRows.length });
+});
+
+transactionRouter.post(
+  "/suggest-categories",
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { rows } = (req.body || {}) as {
+      rows?: { description?: string }[];
+    };
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(400).json({ error: "rows required" });
+    }
+
+    const descriptions = rows
+      .map((r) => r.description || "")
+      .map((d) => d.trim())
+      .filter(Boolean);
+
+    const userId = req.userId as number;
+
+    // Suggest from history for now. Later you can:
+    // - Plug in an OpenAI call here
+    // - Combine DB + AI suggestions
+    const suggestions = await suggestCategoriesFromHistory(
+      userId,
+      descriptions
+    );
+
+    return res.json({ suggestions });
+  }
+);
+
 
 export default transactionRouter;
