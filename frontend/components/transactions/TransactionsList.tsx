@@ -147,7 +147,34 @@ export default function TransactionsList({
   if (loading) return <p>Loading transactions…</p>;
   if (err) return <p className="text-red-600">{err}</p>;
   if (items.length === 0)
-    return <p className="text-gray-500">No transactions yet.</p>;
+    return (
+    
+       <section className="space-y-2 rounded-xl border p-4">
+      <h2 className="text-lg font-semibold"></h2>
+      <div className="flex justify-end gap-4 text-sm pb-4">
+        <button
+          type="button"
+          className={"text-gray-500 hover:underline"}
+          onClick={() => setIsAddOpen(true)}
+        >
+          Add transaction
+        </button>
+        <span className="text-gray-400">|</span>
+        <button
+          type="button"
+          className={"text-gray-500 hover:underline"}
+          onClick={() => setIsImportOpen(true)}
+        >
+          Import transactions
+        </button>
+      </div>
+      <p className="text-gray-500">No transactions yet (balance is set based on initial deposit)</p>
+
+
+    </section>
+    )
+
+    
 
   return (
     <section className="space-y-2 rounded-xl border p-4">
@@ -170,7 +197,7 @@ export default function TransactionsList({
         </button>
       </div>
 
-      <div className="grid grid-cols-5 gap-2 px-2 text-xs font-medium text-primary/70 uppercase border-b pb-2">
+      <div className="grid grid-cols-5 gap-2 px-2 text-xs font-bold text-primary/70 uppercase border-b pb-2">
         <span>Amount</span>
         <span>Category</span>
         <span>Description</span>

@@ -78,7 +78,7 @@ export default function CreateAccountForm({ onCreated, close }: Props) {
           </select>
         </div>
         <div>
-          <label className="text-sm">Starting balance</label>
+          <label className="text-sm">Initial Deposit</label>
           <input
             className="mt-1 w-full rounded-lg border p-2"
             type="number"

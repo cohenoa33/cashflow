@@ -21,7 +21,7 @@ export default function PopupModal({
 
       {/* Dialog */}
       <div
-        className="relative z-10 w-full max-w-xl rounded-xl bg-accent p-4 shadow-xl text-primary"
+        className="relative z-10 w-full max-w-3xl rounded-xl bg-accent p-4 shadow-xl text-primary "
         // prevent closing when clicking inside
         onClick={(e) => e.stopPropagation()}
       >

@@ -74,7 +74,7 @@ export default function AccountView({
           {/* Add transaction modal */}
           {isImportOpen && (
             <PopupModal
-              label="Add Transaction"
+              label="Import Transactions"
               close={() => setIsImportOpen(false)}
             >
               <ImportTransactions

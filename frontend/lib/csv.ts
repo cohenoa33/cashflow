@@ -26,23 +26,34 @@ export function parseTransactionsCsv(file: File): Promise<CsvTransactionRow[]> {
 
             const [dateRaw, amountRaw, descRaw, catRaw] = row;
 
-function parseMoney(str: string): number {
-  if (!str) return 0;
+            function parseMoney(str: string): number {
+              if (!str) return 0;
 
-  const trimmed = str.trim();
-  const hasParens = trimmed.startsWith("(") && trimmed.endsWith(")");
+              const trimmed = str.trim();
+              const hasParens =
+                trimmed.startsWith("(") && trimmed.endsWith(")");
 
-  // Remove $ ( ) , characters
-  const cleaned = trimmed.replace(/[$(),]/g, "");
+              // Remove $ ( ) , characters
+              const cleaned = trimmed.replace(/[$(),]/g, "");
 
-  const value = Number(cleaned);
+              const value = Number(cleaned);
 
-  if (Number.isNaN(value)) return 0;
+              if (Number.isNaN(value)) return 0;
 
-  return hasParens ? -value : value;
-}
-            
-            const date = (dateRaw || "").trim();
+              return hasParens ? -value : value;
+            }
+
+
+        function parseDate(str: string): string {
+          if (!str) return "";
+          const date = new Date(str);
+          if (isNaN(date.getTime())) return "";
+          
+          return date.toISOString().split("T")[0];
+        }
+
+        const date = parseDate(dateRaw);
+
             const description = (descRaw || "").trim();
             const amount = parseMoney(amountRaw);
             const category = (catRaw || "").trim() || undefined;
