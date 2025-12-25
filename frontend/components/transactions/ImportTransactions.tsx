@@ -6,8 +6,13 @@ import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
 import Button from "@/components/ui/Button";
 import TableInput from "../ui/TableInput";
+import { SPENDING_CATEGORIES, INCOME_CATEGORIES } from "@/lib/categories";
+import CategoryInput from "./CategoryInput";
 
+/* TYPES: */
 type RowWithState = CsvTransactionRow & { id: number; error?: string | null };
+type SortBy = "date" | "amount" | "category" | "description";
+type SortDirection = "asc" | "desc";
 
 export default function ImportTransactions({
   accountId,
@@ -17,58 +22,67 @@ export default function ImportTransactions({
   onComplete: () => void;
 }) {
   const [rows, setRows] = useState<RowWithState[]>([]);
-  const [categories, setCategories] = useState<Set<string>>(new Set());
+  const [categories, setCategories] = useState<Set<string>>(
+    new Set([...SPENDING_CATEGORIES, ...INCOME_CATEGORIES])
+  );
   const [err, setErr] = useState<string | null>(null);
   const [errors, setErrors] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
+  const [sortBy, setSortBy] = useState<SortBy>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-function addCategoryToSuggestions(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return;
+  function addCategoryToSuggestions(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return;
 
-  setCategories((prev) => {
-    if (prev.has(trimmed)) return prev;
-    const next = new Set(prev);
-    next.add(trimmed);
-    return next;
-  });
-}
-function applyCategoryToValue(value: string, category: string) {
-  const trimmedCategory = category.trim();
-  if (!trimmedCategory) {
-    // user clicked in and out without choosing/typing a category → keep error
-    return;
+    setCategories((prev) => {
+      if (prev.has(trimmed)) return prev;
+      const next = new Set(prev);
+      next.add(trimmed);
+      return next;
+    });
+  }
+  function applyCategoryToValue(value: string, category: string) {
+    const trimmedCategory = category.trim();
+    if (!trimmedCategory) {
+      // user clicked in and out without choosing/typing a category → keep error
+      return;
+    }
+
+    const updatedRows: RowWithState[] = [];
+    const updatedErrors = new Set<number>();
+
+    rows.forEach((r, idx) => {
+      if (
+        r.description.trim().toLowerCase() === value.trim().toLowerCase() &&
+        r.description.length > 0
+      ) {
+        const updated: RowWithState = {
+          ...r,
+          category: trimmedCategory
+        };
+        const error = rowError(updated);
+        updatedRows.push({ ...updated, error });
+
+        if (error) {
+          updatedErrors.add(idx);
+        }
+      } else {
+        updatedRows.push(r);
+        if (r.error) {
+          updatedErrors.add(idx);
+        }
+      }
+    });
+
+    setRows(updatedRows);
+    setErrors(updatedErrors);
   }
 
-  const updatedRows: RowWithState[] = [];
-  const updatedErrors = new Set<number>();
-
-  rows.forEach((r, idx) => {
-    if (r.description.trim().toLowerCase() === value.trim().toLowerCase() && r.description.length > 0) {
-      const updated: RowWithState = {
-        ...r,
-        category: trimmedCategory
-      };
-      const error = rowError(updated);
-      updatedRows.push({ ...updated, error });
-
-      if (error) {
-        updatedErrors.add(idx);
-      }
-    } else {
-      updatedRows.push(r);
-      if (r.error) {
-        updatedErrors.add(idx);
-      }
-    }
-  });
-
-  setRows(updatedRows);
-  setErrors(updatedErrors);
-}
-
-  async function suggestCategories(current: RowWithState[], errors: Set<number>) {
-
+  async function suggestCategories(
+    current: RowWithState[],
+    errors: Set<number>
+  ) {
     try {
       setErr(null);
       const rowsNeedingCategory = current.filter(
@@ -83,7 +97,7 @@ function applyCategoryToValue(value: string, category: string) {
               .filter((c): c is string => !!c)
           )
         );
-        setCategories((prev) => (new Set([...prev, ...existing])));
+        setCategories((prev) => new Set([...prev, ...existing]));
         return;
       }
 
@@ -126,12 +140,12 @@ function applyCategoryToValue(value: string, category: string) {
         .map((r) => r.category?.trim())
         .filter((c): c is string => !!c);
 
-   setCategories((prev) => {
-     const all = new Set(prev);
-     for (const c of suggestedValues) all.add(c);
-     for (const c of fromRows) all.add(c);
-     return all;
-   });
+      setCategories((prev) => {
+        const all = new Set(prev);
+        for (const c of suggestedValues) all.add(c);
+        for (const c of fromRows) all.add(c);
+        return all;
+      });
     } catch (e) {
       setErr(handleError(e, 5));
     }
@@ -140,20 +154,20 @@ function applyCategoryToValue(value: string, category: string) {
   function cellError(value: string | undefined): boolean {
     return !(value && value.trim());
   }
-function rowError(r: CsvTransactionRow | RowWithState): string | null {
-  const amountNum = Number(r.amount);
+  function rowError(r: CsvTransactionRow | RowWithState): string | null {
+    const amountNum = Number(r.amount);
 
-  if (
-    cellError(r.description) ||
-    cellError(r.category) ||
-    cellError(r.date) ||
-    cellError(String(r.amount)) || // empty / whitespace
-    Number.isNaN(amountNum) // not a valid number
-  ) {
-    return "all fields are required";
+    if (
+      cellError(r.description) ||
+      cellError(r.category) ||
+      cellError(r.date) ||
+      cellError(String(r.amount)) || // empty / whitespace
+      Number.isNaN(amountNum) // not a valid number
+    ) {
+      return "*";
+    }
+    return null;
   }
-  return null;
-}
   async function handleFile(file: File) {
     try {
       setErr(null);
@@ -183,13 +197,12 @@ function rowError(r: CsvTransactionRow | RowWithState): string | null {
         )
       );
       if (initialCategories.length > 0) {
-
-         setCategories((prev) => {
-           const next = new Set(prev);
-           for (const c of initialCategories) next.add(c);
-           return next;
-         });
-       }
+        setCategories((prev) => {
+          const next = new Set(prev);
+          for (const c of initialCategories) next.add(c);
+          return next;
+        });
+      }
 
       await suggestCategories(withState, errors);
     } catch (e) {
@@ -212,24 +225,31 @@ function rowError(r: CsvTransactionRow | RowWithState): string | null {
     if (file) void handleFile(file);
   }
 
-function updateRow(id: number, patch: Partial<RowWithState>) {
-  setRows((prev) => {
-    const updatedErrors = new Set(errors); // or recompute from prev if you want it fully derived
-    const next = prev.map((r) => {
-      if (r.id !== id) return r;
-      const updated = { ...r, ...patch };
-      const error = rowError(updated);
+  function handleDivClick() {
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement | null;
+    input?.click();
+  }
 
-      if (error) updatedErrors.add(id);
-      else updatedErrors.delete(id);
+  function updateRow(id: number, patch: Partial<RowWithState>) {
+    setRows((prev) => {
+      const updatedErrors = new Set(errors); // or recompute from prev if you want it fully derived
+      const next = prev.map((r) => {
+        if (r.id !== id) return r;
+        const updated = { ...r, ...patch };
+        const error = rowError(updated);
 
-      return { ...updated, error };
+        if (error) updatedErrors.add(id);
+        else updatedErrors.delete(id);
+
+        return { ...updated, error };
+      });
+
+      setErrors(updatedErrors);
+      return next;
     });
-
-    setErrors(updatedErrors);
-    return next;
-  });
-}
+  }
 
   function handleCategoryChange(id: number, value: string) {
     updateRow(id, { category: value });
@@ -243,23 +263,23 @@ function updateRow(id: number, patch: Partial<RowWithState>) {
     e.preventDefault();
     setErr(null);
     setBusy(true);
-  
+
     if (errors.size > 0) {
       setErr("Please fix errors before importing");
       setBusy(false);
       return;
-    } 
-const cleanRows: CsvTransactionRow[] = rows.map((r) => ({
-  date: r.date,
-  amount: r.amount,
-  description: r.description,
-  category: r.category
-}));
+    }
+    const cleanRows: CsvTransactionRow[] = rows.map((r) => ({
+      date: r.date,
+      amount: r.amount,
+      description: r.description,
+      category: r.category
+    }));
 
-await api("/transactions/import", {
-  method: "POST",
-  body: JSON.stringify({ accountId, rows: cleanRows })
-});
+    await api("/transactions/import", {
+      method: "POST",
+      body: JSON.stringify({ accountId, rows: cleanRows })
+    });
     try {
       await api("/transactions/import", {
         method: "POST",
@@ -274,6 +294,64 @@ await api("/transactions/import", {
     }
   }
 
+  function handleSort(column: SortBy) {
+    if (sortBy === column) {
+      // Flip direction if already sorting by this column
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      // New column, sort ascending
+      setSortBy(column);
+      setSortDirection("asc");
+    }
+
+    const sorted = [...rows].sort((a, b) => {
+      let aVal: string | number;
+      let bVal: string | number;
+
+      switch (column) {
+        case "date":
+          aVal = a.date;
+          bVal = b.date;
+          break;
+        case "amount":
+          aVal = Number(a.amount);
+          bVal = Number(b.amount);
+          break;
+        case "category":
+          aVal = a.category || "";
+          bVal = b.category || "";
+          break;
+        case "description":
+          aVal = a.description;
+          bVal = b.description;
+          break;
+      }
+
+      const direction = sortBy === column && sortDirection === "asc" ? -1 : 1;
+
+      if (typeof aVal === "string" && typeof bVal === "string") {
+        return aVal.localeCompare(bVal) * direction;
+      }
+
+      if (aVal < bVal) return -1 * direction;
+      if (aVal > bVal) return 1 * direction;
+      return 0;
+    });
+
+    setRows(sorted);
+  }
+
+  function generateArrows() {
+    return sortDirection === "asc" ? (
+      <svg className="inline w-4 h-4" viewBox="0 0 14 14" fill="currentColor">
+        <path d="M6 3 L9 9 L3 9 Z" />
+      </svg>
+    ) : (
+      <svg className="inline w-4 h-4" viewBox="0 0 14 14" fill="currentColor">
+        <path d="M6 9 L9 3 L3 3 Z" />
+      </svg>
+    );
+  }
   return (
     <section className="space-y-4">
       <p className="text-sm">
@@ -285,13 +363,16 @@ await api("/transactions/import", {
         <div
           onDrop={onDrop}
           onDragOver={onDragOver}
-          className="rounded-lg border border-dashed p-6 text-center cursor-pointer"
+          onClick={handleDivClick}
+          className="rounded-lg border border-dashed p-8 text-center cursor-pointer"
         >
-          <p>Drag & drop a CSV file or click below:</p>
+          <p className="text-md font-bold text-white">
+            Drag & drop a CSV file or click below
+          </p>
           <input
             type="file"
             accept=".csv"
-            className="mt-3"
+            className="mt-3 hidden"
             onChange={onFileInputChange}
           />
         </div>
@@ -305,10 +386,30 @@ await api("/transactions/import", {
               <table className="min-w-full border-collapse">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="border px-2 py-1 text-left">Date</th>
-                    <th className="border px-2 py-1 text-left">Amount</th>
-                    <th className="border px-2 py-1 text-left">Category</th>
-                    <th className="border px-2 py-1 text-left">Description</th>
+                    <th
+                      className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort("date")}
+                    >
+                      Date {sortBy === "date" && generateArrows()}
+                    </th>
+                    <th
+                      className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort("amount")}
+                    >
+                      Amount {sortBy === "amount" && generateArrows()}
+                    </th>
+                    <th
+                      className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort("category")}
+                    >
+                      Category {sortBy === "category" && generateArrows()}
+                    </th>
+                    <th
+                      className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort("description")}
+                    >
+                      Description {sortBy === "description" && generateArrows()}
+                    </th>
                     <th className="border px-2 py-1"></th>
                   </tr>
                 </thead>
@@ -316,7 +417,7 @@ await api("/transactions/import", {
                   {rows.map((r) => (
                     <tr
                       key={r.id}
-                      className={r.error ? "bg-red-50/35" : undefined}
+                      className={r.error ? "bg-gray-50/50" : "bg-gray-50/75"}
                     >
                       <td className="border px-2 py-1">
                         <TableInput
@@ -337,14 +438,14 @@ await api("/transactions/import", {
                       </td>
 
                       <td className="border px-2 py-1">
-                        <TableInput
-                          list="category-options"
+                        <CategoryInput
                           value={r.category || ""}
                           onChange={(v) => handleCategoryChange(r.id, v)}
-                          onBlur={(v) => {
+                          onPick={(v) => {
                             applyCategoryToValue(r.description, v);
                             addCategoryToSuggestions(v);
                           }}
+                          options={[...categories]}
                         />
                       </td>
 
@@ -354,20 +455,27 @@ await api("/transactions/import", {
                           onChange={(v) => updateRow(r.id, { description: v })}
                         />
                       </td>
-
                       <td className="border px-2 py-1 text-right">
-                        <button
-                          type="button"
-                          onClick={() => deleteRow(r.id)}
-                          className="text-red-600 underline text-xs"
+                        <div
+                          className={
+                            r.error
+                              ? "flex items-center justify-between gap-2"
+                              : "flex justify-end"
+                          }
                         >
-                          Delete
-                        </button>
-                        {r.error && (
-                          <div className="text-red-600 text-[10px]">
-                            {r.error}
-                          </div>
-                        )}
+                          {r.error && (
+                            <div className="text-red-600 text-[10px]">
+                              {r.error}
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => deleteRow(r.id)}
+                            className="text-red-600 underline text-xs whitespace-nowrap"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -378,15 +486,6 @@ await api("/transactions/import", {
             {err && <p className="text-sm text-red-600">{err}</p>}
           </div>
         )}
-
-        {/* Shared datalist for all category inputs */}
-        <datalist id="category-options">
-          {[...categories]
-            .sort((a, b) => a.localeCompare(b))
-            .map((c) => (
-              <option key={c} value={c} />
-            ))}
-        </datalist>
 
         {/* Submit */}
         <Button
