@@ -149,6 +149,9 @@ export default function CategoryInput({
           setActiveIndex(suggestions.length ? 0 : -1);
           if (typeof window !== "undefined") updatePosition();
         }}
+        onBlur={(e) => {
+          pick(e.target.value);
+        }}
         placeholder={placeholder}
         required={required}
         className="w-full rounded px-1 outline-none border-none bg-transparent"

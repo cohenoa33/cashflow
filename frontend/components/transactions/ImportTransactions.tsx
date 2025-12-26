@@ -33,11 +33,15 @@ export default function ImportTransactions({
 
   function addCategoryToSuggestions(value: string) {
     const trimmed = value.trim();
+
+
     if (!trimmed) return;
 
     setCategories((prev) => {
+
       if (prev.has(trimmed)) return prev;
       const next = new Set(prev);
+  
       next.add(trimmed);
       return next;
     });
@@ -59,6 +63,7 @@ export default function ImportTransactions({
       ) {
         const updated: RowWithState = {
           ...r,
+          id: idx,
           category: trimmedCategory
         };
         const error = rowError(updated);
@@ -116,12 +121,12 @@ export default function ImportTransactions({
       const updatedErrors = new Set(errors);
 
       // apply suggestions to rows
-      const updatedRows = current.map((r, id) => {
+      const updatedRows = current.map((r) => {
         if (r.category?.trim()) return r;
         const key = r.description.trim().toLowerCase();
         const suggested = map[key];
         if (!suggested) return r;
-        updatedErrors.delete(id);
+        updatedErrors.delete(r.id);
         return {
           ...r,
           category: suggested,
@@ -253,10 +258,16 @@ export default function ImportTransactions({
 
   function handleCategoryChange(id: number, value: string) {
     updateRow(id, { category: value });
+
+
   }
 
   function deleteRow(id: number) {
     setRows((prev) => prev.filter((r) => r.id !== id));
+
+        const updatedErrors = new Set(errors);
+        updatedErrors.delete(id);
+        setErrors(updatedErrors);
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -352,6 +363,8 @@ export default function ImportTransactions({
       </svg>
     );
   }
+
+
   return (
     <section className="space-y-4">
       <p className="text-sm">
@@ -442,6 +455,7 @@ export default function ImportTransactions({
                           value={r.category || ""}
                           onChange={(v) => handleCategoryChange(r.id, v)}
                           onPick={(v) => {
+      
                             applyCategoryToValue(r.description, v);
                             addCategoryToSuggestions(v);
                           }}

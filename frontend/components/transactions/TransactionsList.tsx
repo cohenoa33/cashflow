@@ -177,7 +177,7 @@ export default function TransactionsList({
     
 
   return (
-    <section className="space-y-2 rounded-xl border p-4">
+    <section className="space-y-2 rounded-xl border p-4 bg-white">
       <h2 className="text-lg font-semibold"></h2>
       <div className="flex justify-end gap-4 text-sm pb-4">
         <button

@@ -1,6 +1,8 @@
 // lib/categories.ts
 
 export const SPENDING_CATEGORIES: string[] = [
+  // Auto/Car
+    "Auto",
   // Housing
   "Housing",
   "Rent / Mortgage",
@@ -52,6 +54,7 @@ export const SPENDING_CATEGORIES: string[] = [
   // Other
   "Miscellaneous"
 ];
+
 
 
 export const INCOME_CATEGORIES: string[] = [
