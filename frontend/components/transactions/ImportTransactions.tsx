@@ -11,7 +11,7 @@ import CategoryInput from "./CategoryInput";
 
 /* TYPES: */
 type RowWithState = CsvTransactionRow & { id: number; error?: string | null };
-type SortBy = "date" | "amount" | "category" | "description";
+type SortBy = "date" | "amount" | "category" | "description" | "error";
 type SortDirection = "asc" | "desc";
 
 export default function ImportTransactions({
@@ -22,6 +22,7 @@ export default function ImportTransactions({
   onComplete: () => void;
 }) {
   const [rows, setRows] = useState<RowWithState[]>([]);
+
   const [categories, setCategories] = useState<Set<string>>(
     new Set([...SPENDING_CATEGORIES, ...INCOME_CATEGORIES])
   );
@@ -34,14 +35,12 @@ export default function ImportTransactions({
   function addCategoryToSuggestions(value: string) {
     const trimmed = value.trim();
 
-
     if (!trimmed) return;
 
     setCategories((prev) => {
-
       if (prev.has(trimmed)) return prev;
       const next = new Set(prev);
-  
+
       next.add(trimmed);
       return next;
     });
@@ -52,34 +51,27 @@ export default function ImportTransactions({
       // user clicked in and out without choosing/typing a category → keep error
       return;
     }
-
     const updatedRows: RowWithState[] = [];
     const updatedErrors = new Set<number>();
 
-    rows.forEach((r, idx) => {
+    rows.forEach((r) => {
+      let updated = r;
+      let error = r.error;
       if (
         r.description.trim().toLowerCase() === value.trim().toLowerCase() &&
         r.description.length > 0
       ) {
-        const updated: RowWithState = {
+        error = rowError(updated);
+        updated = {
           ...r,
-          id: idx,
-          category: trimmedCategory
+          category: trimmedCategory,
+          error
         };
-        const error = rowError(updated);
-        updatedRows.push({ ...updated, error });
-
-        if (error) {
-          updatedErrors.add(idx);
-        }
-      } else {
-        updatedRows.push(r);
-        if (r.error) {
-          updatedErrors.add(idx);
-        }
       }
-    });
 
+      updatedRows.push(updated);
+      if (error) updatedErrors.add(updated.id);
+    });
     setRows(updatedRows);
     setErrors(updatedErrors);
   }
@@ -135,6 +127,7 @@ export default function ImportTransactions({
       });
 
       setRows(updatedRows);
+
       setErrors(updatedErrors);
 
       // collect all categories from suggestions + existing rows
@@ -179,18 +172,16 @@ export default function ImportTransactions({
       const errors = new Set<number>();
       const parsed = await parseTransactionsCsv(file);
 
-      const withState: RowWithState[] = parsed.map((r, idx) => {
+      const withState: RowWithState[] = parsed.map((r) => {
         const error = rowError(r);
         if (error) {
-          errors.add(idx);
+          errors.add(r.id);
         }
         return {
           ...r,
-          id: idx,
           error
         };
       });
-
       setRows(withState);
 
       // seed category suggestions from CSV itself
@@ -238,8 +229,8 @@ export default function ImportTransactions({
   }
 
   function updateRow(id: number, patch: Partial<RowWithState>) {
+    const updatedErrors = new Set(errors); // or recompute from prev if you want it fully derived
     setRows((prev) => {
-      const updatedErrors = new Set(errors); // or recompute from prev if you want it fully derived
       const next = prev.map((r) => {
         if (r.id !== id) return r;
         const updated = { ...r, ...patch };
@@ -251,23 +242,22 @@ export default function ImportTransactions({
         return { ...updated, error };
       });
 
-      setErrors(updatedErrors);
       return next;
     });
+
+    setErrors(updatedErrors);
   }
 
   function handleCategoryChange(id: number, value: string) {
     updateRow(id, { category: value });
-
-
   }
 
   function deleteRow(id: number) {
-    setRows((prev) => prev.filter((r) => r.id !== id));
+    const updatedErrors = new Set(errors);
+    updatedErrors.delete(id);
 
-        const updatedErrors = new Set(errors);
-        updatedErrors.delete(id);
-        setErrors(updatedErrors);
+    setErrors(updatedErrors);
+    setRows((prev) => prev.filter((r) => r.id !== id));
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -280,21 +270,22 @@ export default function ImportTransactions({
       setBusy(false);
       return;
     }
-    const cleanRows: CsvTransactionRow[] = rows.map((r) => ({
+    const cleanRows: {
+      date: string;
+      amount: number;
+      description: string;
+      category?: string;
+    }[] = rows.map((r) => ({
       date: r.date,
       amount: r.amount,
       description: r.description,
       category: r.category
     }));
 
-    await api("/transactions/import", {
-      method: "POST",
-      body: JSON.stringify({ accountId, rows: cleanRows })
-    });
     try {
       await api("/transactions/import", {
         method: "POST",
-        body: JSON.stringify({ accountId, rows })
+        body: JSON.stringify({ accountId, rows: cleanRows })
       });
 
       onComplete();
@@ -320,6 +311,10 @@ export default function ImportTransactions({
       let bVal: string | number;
 
       switch (column) {
+        case "error":
+          aVal = a.error ? 1 : 0;
+          bVal = b.error ? 1 : 0;
+          break;
         case "date":
           aVal = a.date;
           bVal = b.date;
@@ -364,151 +359,170 @@ export default function ImportTransactions({
     );
   }
 
-
   return (
     <section className="space-y-4">
-      <p className="text-sm">
+      <p className="text-sm font-bold">
         Import a CSV file with date, amount, description, and category. You can
         review and edit rows before saving.
       </p>
-      <form onSubmit={onSubmit} className="space-y-4">
-        {/* Upload section */}
-        <div
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onClick={handleDivClick}
-          className="rounded-lg border border-dashed p-8 text-center cursor-pointer"
-        >
-          <p className="text-md font-bold text-white">
-            Drag & drop a CSV file or click below
-          </p>
-          <input
-            type="file"
-            accept=".csv"
-            className="mt-3 hidden"
-            onChange={onFileInputChange}
-          />
-        </div>
+      <form onSubmit={onSubmit} className="space-y-4 ">
+        {!rows.length ? (
+          <div
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onClick={handleDivClick}
+            className="rounded-lg border border-dashed p-8 text-center cursor-pointer"
+          >
+            {/* Upload section */}
+            <p className="text-md font-bold text-white">
+              Drag & drop a CSV file or click below
+            </p>
+            <input
+              type="file"
+              accept=".csv"
+              className="mt-3 hidden"
+              onChange={onFileInputChange}
+            />
+          </div>
+        ) : (
+          <div className="space-y-2 flex flex-col h-[calc(100vh-200px)]">
+            {err && <p className="text-sm font-medium text-red-600">{err}</p>}
+            {/* Table section */}
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <div className="flex text-sm font-medium ">
+                <p>Parsed rows: {rows.length}</p>
+                <div className="flex-grow" />
+                <button
+                  type="button"
+                  onClick={() => setRows([])}
+                  className={"hover:underline"}
+                >
+                  Start Over
+                </button>
+              </div>
 
-        {/* Table section */}
-        {rows.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Parsed rows: {rows.length}</p>
-
-            <div className="max-h-72 overflow-auto rounded border text-xs ">
-              <table className="min-w-full border-collapse">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort("date")}
-                    >
-                      Date {sortBy === "date" && generateArrows()}
-                    </th>
-                    <th
-                      className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort("amount")}
-                    >
-                      Amount {sortBy === "amount" && generateArrows()}
-                    </th>
-                    <th
-                      className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort("category")}
-                    >
-                      Category {sortBy === "category" && generateArrows()}
-                    </th>
-                    <th
-                      className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort("description")}
-                    >
-                      Description {sortBy === "description" && generateArrows()}
-                    </th>
-                    <th className="border px-2 py-1"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((r) => (
-                    <tr
-                      key={r.id}
-                      className={r.error ? "bg-gray-50/50" : "bg-gray-50/75"}
-                    >
-                      <td className="border px-2 py-1">
-                        <TableInput
-                          type="date"
-                          value={r.date}
-                          onChange={(v) => updateRow(r.id, { date: v })}
-                        />
-                      </td>
-
-                      <td className="border px-2 py-1">
-                        <TableInput
-                          type="number"
-                          value={r.amount}
-                          onChange={(v) =>
-                            updateRow(r.id, { amount: Number(v) })
-                          }
-                        />
-                      </td>
-
-                      <td className="border px-2 py-1">
-                        <CategoryInput
-                          value={r.category || ""}
-                          onChange={(v) => handleCategoryChange(r.id, v)}
-                          onPick={(v) => {
-      
-                            applyCategoryToValue(r.description, v);
-                            addCategoryToSuggestions(v);
-                          }}
-                          options={[...categories]}
-                        />
-                      </td>
-
-                      <td className="border px-2 py-1">
-                        <TableInput
-                          value={r.description}
-                          onChange={(v) => updateRow(r.id, { description: v })}
-                        />
-                      </td>
-                      <td className="border px-2 py-1 text-right">
-                        <div
-                          className={
-                            r.error
-                              ? "flex items-center justify-between gap-2"
-                              : "flex justify-end"
-                          }
-                        >
-                          {r.error && (
-                            <div className="text-red-600 text-[10px]">
-                              {r.error}
-                            </div>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => deleteRow(r.id)}
-                            className="text-red-600 underline text-xs whitespace-nowrap"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+              <div className="flex-1 overflow-auto rounded text-xs mt-4">
+                <table className="min-w-full border-collapse">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th
+                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort("date")}
+                      >
+                        Date {sortBy === "date" && generateArrows()}
+                      </th>
+                      <th
+                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort("amount")}
+                      >
+                        Amount {sortBy === "amount" && generateArrows()}
+                      </th>
+                      <th
+                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort("description")}
+                      >
+                        Description{" "}
+                        {sortBy === "description" && generateArrows()}
+                      </th>
+                      <th
+                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort("category")}
+                      >
+                        Category {sortBy === "category" && generateArrows()}
+                      </th>
+                      <th
+                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort("error")}
+                      >
+                        Error {sortBy === "error" && generateArrows()}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <tr
+                        key={`row-${r.id}`}
+                        className={r.error ? "bg-gray-50/50" : "bg-gray-50/75"}
+                      >
+                        <td className="border px-2 py-1">
+                          <TableInput
+                            type="date"
+                            value={r.date}
+                            onChange={(v) => updateRow(r.id, { date: v })}
+                          />
+                        </td>
 
-            {err && <p className="text-sm text-red-600">{err}</p>}
+                        <td className="border px-2 py-1">
+                          <TableInput
+                            type="number"
+                            value={r.amount}
+                            onChange={(v) =>
+                              updateRow(r.id, { amount: Number(v) })
+                            }
+                          />
+                        </td>
+                        <td className="border px-2 py-1">
+                          <TableInput
+                            value={r.description}
+                            onChange={(v) =>
+                              updateRow(r.id, { description: v })
+                            }
+                          />
+                        </td>
+
+                        <td className="border px-2 py-1">
+                          <CategoryInput
+                            value={r.category || ""}
+                            onChange={(v) => handleCategoryChange(r.id, v)}
+                            onPick={(v) => {
+                              applyCategoryToValue(r.description, v);
+                              addCategoryToSuggestions(v);
+                            }}
+                            options={[...categories]}
+                          />
+                        </td>
+
+                        <td className="border px-2 py-1 text-right">
+                          <div
+                            className={
+                              r.error
+                                ? "flex items-center justify-between gap-2"
+                                : "flex justify-end"
+                            }
+                          >
+                            {r.error && (
+                              <div className="text-red-600 text-[10px]">
+                                {r.error}
+                              </div>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => deleteRow(r.id)}
+                              className="text-red-600 underline text-xs whitespace-nowrap"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {/* Submit */}
+            <div className="flex justify-center m-4">
+              <Button
+                disabled={busy || rows.length === 0 || errors.size > 0}
+                className="w-1/2 min-w-[200px]"
+                type="submit"
+              >
+                {busy ? "Importing…" : "Import Transactions"}
+              </Button>
+            </div>
           </div>
         )}
-
-        {/* Submit */}
-        <Button
-          disabled={busy || rows.length === 0 || errors.size > 0}
-          className="w-full"
-          type="submit"
-        >
-          {busy ? "Importing…" : "Import Transactions"}
-        </Button>
       </form>
     </section>
   );

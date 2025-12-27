@@ -6,7 +6,9 @@ export type CsvTransactionRow = {
   amount: number;
   description: string;
   category?: string;
+  id: number;
 };
+
 
 export function parseTransactionsCsv(file: File): Promise<CsvTransactionRow[]> {
   return new Promise((resolve, reject) => {
@@ -62,7 +64,7 @@ export function parseTransactionsCsv(file: File): Promise<CsvTransactionRow[]> {
               continue; // skip empty lines
             }
 
-            rows.push({ date, amount, description, category });
+            rows.push({ date, amount, description, category, id: i+1 });
           }
 
           resolve(rows);

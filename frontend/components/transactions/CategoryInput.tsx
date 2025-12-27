@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { suggestCategoriesHelper } from "@/lib/suggestCategory";
 
 type Props = {
@@ -20,19 +19,11 @@ export default function CategoryInput({
   onPick,
   options,
   placeholder,
-  required,
-
+  required
 }: Props) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-
   const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const [pos, setPos] = useState<{ left: number; top: number; width: number }>({
-    left: 0,
-    top: 0,
-    width: 0
-  });
 
   const sorted = useMemo(
     () => [...options].sort((a, b) => a.localeCompare(b)),
@@ -40,41 +31,11 @@ export default function CategoryInput({
   );
 
   const suggestions = useMemo(
-    () => suggestCategoriesHelper(sorted, value, ),
-    [sorted, value,]
+    () => suggestCategoriesHelper(sorted, value),
+    [sorted, value]
   );
 
-  function updatePosition() {
-    const el = inputRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    setPos({
-      left: r.left + window.scrollX,
-      top: r.bottom + window.scrollY,
-      width: r.width
-    });
-  }
-
-  useEffect(() => {
-    if (!open) return;
-
-    // position right away
-    updatePosition();
-
-    // keep positioned when scrolling inside scroll containers + window scroll
-    const onScroll = () => updatePosition();
-    const onResize = () => updatePosition();
-
-    window.addEventListener("scroll", onScroll, true);
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      window.removeEventListener("scroll", onScroll, true);
-      window.removeEventListener("resize", onResize);
-    };
-  }, [open]);
-
-  // keep active item visible (inside the dropdown itself)
+  // Keep active item visible
   useEffect(() => {
     if (!open || activeIndex < 0) return;
     document
@@ -89,44 +50,10 @@ export default function CategoryInput({
     setActiveIndex(-1);
   }
 
-  const menu =
-    open && suggestions.length > 0 ? (
-      <div
-        className="fixed z-[9999] mt-1 rounded-md border bg-white shadow text-sm max-h-56 overflow-auto"
-        style={{
-          left: pos.left,
-          top: pos.top + 4,
-          width: pos.width
-        }}
-      >
-        {suggestions.map((c, idx) => {
-          const active = idx === activeIndex;
-          return (
-            <button
-              id={`catopt-${idx}`}
-              key={c}
-              type="button"
-              tabIndex={-1}
-              className={[
-                "block w-full text-left px-2 py-1",
-                active ? "bg-gray-100" : "hover:bg-gray-50"
-              ].join(" ")}
-              onMouseDown={(e) => e.preventDefault()} // keep focus in input
-              onMouseEnter={() => setActiveIndex(idx)}
-              onClick={() => pick(c)}
-            >
-              {c}
-            </button>
-          );
-        })}
-      </div>
-    ) : null;
-
   return (
     <div
-      className="relative"
+      className={`relative p-0 ${open ? "bg-gray-100" : ""}`}
       onBlur={(e) => {
-        // close only if focus left the whole container
         if (!e.currentTarget.contains(e.relatedTarget as Node)) {
           setOpen(false);
           setActiveIndex(-1);
@@ -139,15 +66,11 @@ export default function CategoryInput({
         onFocus={() => {
           setOpen(true);
           setActiveIndex(suggestions.length ? 0 : -1);
-          // make sure position is correct when opening
-          // (especially after scrolling inside the table)
-          if (typeof window !== "undefined") updatePosition();
         }}
         onChange={(e) => {
           onChange(e.target.value);
           setOpen(true);
           setActiveIndex(suggestions.length ? 0 : -1);
-          if (typeof window !== "undefined") updatePosition();
         }}
         onBlur={(e) => {
           pick(e.target.value);
@@ -159,7 +82,6 @@ export default function CategoryInput({
           if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
             setOpen(true);
             setActiveIndex(suggestions.length ? 0 : -1);
-            if (typeof window !== "undefined") updatePosition();
             return;
           }
 
@@ -192,8 +114,30 @@ export default function CategoryInput({
         }}
       />
 
-      {/* Render dropdown in a portal so it's not clipped by overflow containers */}
-      {menu ? createPortal(menu, document.body) : null}
+      {open && suggestions.length > 0 && (
+        <div
+          className="absolute top-full left-0 right-0 z-50 rounded-md border bg-white shadow text-sm max-h-56 overflow-auto mt-1"
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+        >
+          {suggestions.map((c, idx) => (
+            <button
+              id={`catopt-${idx}`}
+              key={c}
+              type="button"
+              tabIndex={-1}
+              className={`block w-full text-left px-2 py-1 ${
+                idx === activeIndex ? "bg-gray-100" : "hover:bg-gray-50"
+              }`}
+              onMouseDown={(e) => e.preventDefault()}
+              onMouseEnter={() => setActiveIndex(idx)}
+              onClick={() => pick(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

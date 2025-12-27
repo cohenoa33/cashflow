@@ -5,7 +5,6 @@ import PopupModal from "@/components/ui/Modal";
 import AccountBalanceChart from "@/components/accounts/AccountBalanceChart";
 import TransactionsList from "@/components/transactions/TransactionsList";
 import AddTransactionForm from "@/components/transactions/AddTransactionForm";
-import ImportTransactions from "@/components/transactions/ImportTransactions";
 import { formatCurrency } from "@/lib/currency";
 import type { AccountDetail } from "@/types/api";
 
@@ -25,12 +24,7 @@ export default function AccountView({
 }: AccountViewProps) {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isImportOpen, setIsImportOpen] = useState(false);
 
-  const handleImported = () => {
-    setIsImportOpen(false);
-    onRefresh();
-  };
 
   return (
     <section className="space-y-6">
@@ -71,24 +65,12 @@ export default function AccountView({
               />
             </PopupModal>
           )}
-          {/* Add transaction modal */}
-          {isImportOpen && (
-            <PopupModal
-              label="Import Transactions"
-              close={() => setIsImportOpen(false)}
-            >
-              <ImportTransactions
-                accountId={account.id}
-                onComplete={handleImported}
-              />
-            </PopupModal>
-          )}
 
           <TransactionsList
             key={refreshKey}
             accountId={accountId}
             currency={account.currency}
-            setIsImportOpen={setIsImportOpen}
+
             setIsAddOpen={setIsAddOpen}
           />
 
