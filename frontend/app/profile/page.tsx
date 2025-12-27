@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import RequireAuth from "@/components/RequireAuth";
-import NavBar from "@/components/NavBar";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
 import { PASSWORD_REGEX } from "@/lib/password";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
+import AppShell from "@/components/layout/AppShell";
 
 type UserInfo = {
   id: number;
@@ -205,249 +204,244 @@ function handleCancelChangePassword() {
    confirmTouched &&
    (confirmPassword.trim().length === 0 || confirmPassword !== newPassword);
   return (
-    <RequireAuth>
-      <NavBar />
-      <main className="mx-auto max-w-3xl px-4 py-6 space-y-6">
-        <h1 className="text-2xl font-semibold">Profile</h1>
-
-        {loading && <p className="text-sm text-primary">Loading profile…</p>}
-
-        {user && (
-          <>
-            {/* Profile info + edit */}
-            <section className="space-y-3 rounded-md border p-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">Personal Info</h2>
-                {!editing ? (
-                  <Button
-                    onClick={() => {
-                      setEditing(true);
-                      setProfileSuccess(null);
-                      setError(null);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="accent"
-                      onClick={handleProfileCancel}
-                      disabled={profileSaving}
-                      className=" mt-2"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                {/* Email (not editable) */}
-                <div>
-                  <span className="block text-xs font-medium text-slate-500">
-                    Email
-                  </span>
-                  <span className="text-sm">{user.email}</span>
-                </div>
-
-                {/* First + Last name (toggle text vs input) */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {/* FIRST NAME */}
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500">
-                      First name
-                    </label>
-
-                    {!editing ? (
-                      <p className="mt-1 text-sm">
-                        {user.firstName || (
-                          <span className="text-slate-400">–</span>
-                        )}
-                      </p>
-                    ) : (
-                      <>
-                        <input
-                          type="text"
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          className={`mt-1 w-full rounded-md border px-2 py-1 text-sm ${
-                            firstInvalid
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-slate-300"
-                          }`}
-                        />
-                        {firstInvalid && (
-                          <p className="text-xs text-red-600 mt-1">
-                            First name is required.
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-
-                  {/* LAST NAME */}
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500">
-                      Last name
-                    </label>
-
-                    {!editing ? (
-                      <p className="mt-1 text-sm">
-                        {user.lastName || (
-                          <span className="text-slate-400">–</span>
-                        )}
-                      </p>
-                    ) : (
-                      <>
-                        <input
-                          type="text"
-                          value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
-                          className={`mt-1 w-full rounded-md border px-2 py-1 text-sm ${
-                            lastInvalid
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-slate-300"
-                          }`}
-                        />
-                        {lastInvalid && (
-                          <p className="text-xs text-red-600 mt-1">
-                            Last name is required.
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-                {editing && (
-                  <Button
-                    onClick={handleProfileSave}
-                    disabled={profileSaving}
-                    className="mt-2 w-full"
-                  >
-                    {profileSaving ? "Saving…" : "Save"}
-                  </Button>
-                )}
-              </div>
-              {error && <p className="text-sm text-danger">{error}</p>}
-              {profileSuccess && !loading && (
-                <p className="text-sm text-success transition-opacity duration-500">
-                  {profileSuccess}
-                </p>
-              )}
-            </section>
-
-            {/* Change password */}
-            <section className="space-y-3 rounded-md border p-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">Account Security</h2>
-
-                {!changingPassword ? (
-                  <Button
-                    onClick={() => {
-                      setChangingPassword(true);
-                      setPasswordError(null);
-                      setPasswordSuccess(null);
-                      setCurrentTouched(false);
-                      setNewTouched(false);
-                      setConfirmTouched(false);
-                    }}
-                  >
-                    Change password
-                  </Button>
-                ) : (
+    <AppShell>
+      <h1 className="text-2xl font-semibold">Profile</h1>
+      {loading && <p className="text-sm text-primary">Loading profile…</p>}
+      {user && (
+        <>
+          {/* Profile info + edit */}
+          <section className="space-y-3 rounded-md border p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">Personal Info</h2>
+              {!editing ? (
+                <Button
+                  onClick={() => {
+                    setEditing(true);
+                    setProfileSuccess(null);
+                    setError(null);
+                  }}
+                >
+                  Edit
+                </Button>
+              ) : (
+                <div className="flex gap-2">
                   <Button
                     variant="accent"
-                    onClick={handleCancelChangePassword}
-                    disabled={passwordBusy}
-                    className="mt-2"
+                    onClick={handleProfileCancel}
+                    disabled={profileSaving}
+                    className=" mt-2"
                   >
                     Cancel
                   </Button>
-                )}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              {/* Email (not editable) */}
+              <div>
+                <span className="block text-xs font-medium text-slate-500">
+                  Email
+                </span>
+                <span className="text-sm">{user.email}</span>
               </div>
 
-              {changingPassword && (
-                <form className="space-y-3" onSubmit={handleChangePassword}>
-                  {/* Current password */}
+              {/* First + Last name (toggle text vs input) */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {/* FIRST NAME */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-500">
+                    First name
+                  </label>
+
+                  {!editing ? (
+                    <p className="mt-1 text-sm">
+                      {user.firstName || (
+                        <span className="text-slate-400">–</span>
+                      )}
+                    </p>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className={`mt-1 w-full rounded-md border px-2 py-1 text-sm ${
+                          firstInvalid
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-slate-300"
+                        }`}
+                      />
+                      {firstInvalid && (
+                        <p className="text-xs text-red-600 mt-1">
+                          First name is required.
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* LAST NAME */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-500">
+                    Last name
+                  </label>
+
+                  {!editing ? (
+                    <p className="mt-1 text-sm">
+                      {user.lastName || (
+                        <span className="text-slate-400">–</span>
+                      )}
+                    </p>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className={`mt-1 w-full rounded-md border px-2 py-1 text-sm ${
+                          lastInvalid
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-slate-300"
+                        }`}
+                      />
+                      {lastInvalid && (
+                        <p className="text-xs text-red-600 mt-1">
+                          Last name is required.
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+              {editing && (
+                <Button
+                  onClick={handleProfileSave}
+                  disabled={profileSaving}
+                  className="mt-2 w-full"
+                >
+                  {profileSaving ? "Saving…" : "Save"}
+                </Button>
+              )}
+            </div>
+            {error && <p className="text-sm text-danger">{error}</p>}
+            {profileSuccess && !loading && (
+              <p className="text-sm text-success transition-opacity duration-500">
+                {profileSuccess}
+              </p>
+            )}
+          </section>
+
+          {/* Change password */}
+          <section className="space-y-3 rounded-md border p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">Account Security</h2>
+
+              {!changingPassword ? (
+                <Button
+                  onClick={() => {
+                    setChangingPassword(true);
+                    setPasswordError(null);
+                    setPasswordSuccess(null);
+                    setCurrentTouched(false);
+                    setNewTouched(false);
+                    setConfirmTouched(false);
+                  }}
+                >
+                  Change password
+                </Button>
+              ) : (
+                <Button
+                  variant="accent"
+                  onClick={handleCancelChangePassword}
+                  disabled={passwordBusy}
+                  className="mt-2"
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
+
+            {changingPassword && (
+              <form className="space-y-3" onSubmit={handleChangePassword}>
+                {/* Current password */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-500">
+                    Current password
+                  </label>
+                  <div className="mt-1 flex gap-2">
+                    <PasswordInput
+                      value={currentPassword}
+                      onChange={(v) => {
+                        setCurrentPassword(v);
+                        setCurrentTouched(true);
+                      }}
+                      invalid={currentInvalid}
+                      placeholder="Current password"
+                    />
+                  </div>
+                </div>
+
+                {/* New + confirm */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-xs font-medium text-slate-500">
-                      Current password
+                      New password
                     </label>
                     <div className="mt-1 flex gap-2">
                       <PasswordInput
-                        value={currentPassword}
+                        value={newPassword}
                         onChange={(v) => {
-                          setCurrentPassword(v);
-                          setCurrentTouched(true);
+                          setNewPassword(v);
+                          setNewTouched(true);
                         }}
-                        invalid={currentInvalid}
-                        placeholder="Current password"
+                        invalid={newInvalid}
+                        placeholder="New password"
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      At least 8 characters, with uppercase, lowercase, number,
+                      and a special character.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500">
+                      Confirm new password
+                    </label>
+                    <div className="mt-1 flex gap-2">
+                      <PasswordInput
+                        value={confirmPassword}
+                        onChange={(v) => {
+                          setConfirmPassword(v);
+                          setConfirmTouched(true);
+                        }}
+                        invalid={confirmInvalid}
+                        placeholder="Confirm new password"
                       />
                     </div>
                   </div>
+                </div>
 
-                  {/* New + confirm */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-xs font-medium text-slate-500">
-                        New password
-                      </label>
-                      <div className="mt-1 flex gap-2">
-                        <PasswordInput
-                          value={newPassword}
-                          onChange={(v) => {
-                            setNewPassword(v);
-                            setNewTouched(true);
-                          }}
-                          invalid={newInvalid}
-                          placeholder="New password"
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-slate-500">
-                        At least 8 characters, with uppercase, lowercase,
-                        number, and a special character.
-                      </p>
-                    </div>
+                <Button
+                  type="submit"
+                  disabled={passwordBusy}
+                  className="mt-2 w-full"
+                >
+                  {passwordBusy ? "Saving…" : "Update password"}
+                </Button>
 
-                    <div>
-                      <label className="block text-xs font-medium text-slate-500">
-                        Confirm new password
-                      </label>
-                      <div className="mt-1 flex gap-2">
-                        <PasswordInput
-                          value={confirmPassword}
-                          onChange={(v) => {
-                            setConfirmPassword(v);
-                            setConfirmTouched(true);
-                          }}
-                          invalid={confirmInvalid}
-                          placeholder="Confirm new password"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    disabled={passwordBusy}
-                    className="mt-2 w-full"
-                  >
-                    {passwordBusy ? "Saving…" : "Update password"}
-                  </Button>
-
-                  {passwordError && (
-                    <p className="text-sm text-red-600">{passwordError}</p>
-                  )}
-                  {passwordSuccess && (
-                    <p className="text-sm text-green-600">{passwordSuccess}</p>
-                  )}
-                </form>
-              )}
-            </section>
-          </>
-        )}
-      </main>
-    </RequireAuth>
+                {passwordError && (
+                  <p className="text-sm text-red-600">{passwordError}</p>
+                )}
+                {passwordSuccess && (
+                  <p className="text-sm text-green-600">{passwordSuccess}</p>
+                )}
+              </form>
+            )}
+          </section>
+        </>
+      )}
+    </AppShell>
   );
 }

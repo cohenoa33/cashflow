@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import RequireAuth from "@/components/RequireAuth";
 import { api, ApiError } from "@/lib/api";
 import { handleError } from "@/lib/error";
-import NavBar from "@/components/NavBar";
 import EditAccountForm from "@/components/accounts/EditAccountForm";
 import AccountView from "@/components/accounts/AccountView";
 import type { AccountDetail } from "@/types/api";
+import AppShell from "@/components/layout/AppShell";
 
 type Mode = "view" | "edit";
 
@@ -64,89 +63,76 @@ export default function AccountDetailPage() {
 
   // Quiet UI while redirecting
   if (redirecting) {
-    return (
-      <RequireAuth>
-        <NavBar />
-        <main className="mx-auto max-w-3xl p-6 space-y-6" />
-      </RequireAuth>
-    );
+    return <AppShell></AppShell>;
   }
 
   // Initial load / error state when no account yet
   if (!account) {
     const message = loading ? "Loading..." : err || "Account not found";
     return (
-      <RequireAuth>
-        <NavBar />
-        <main className="mx-auto max-w-3xl p-6 space-y-6">
-          <header className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold">{message}</h1>
-          </header>
-        </main>
-      </RequireAuth>
+      <AppShell>
+        <header className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">{message}</h1>
+        </header>
+      </AppShell>
     );
   }
 
   return (
-    <RequireAuth>
-      <NavBar />
-      <main className="mx-auto max-w-3xl p-6 space-y-6">
-        {/* Header + top-level mode switch (View / Edit) */}
-        <header className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">{account.name}</h1>
-          <div className="flex items-center gap-2 text-sm">
-            <button
-              type="button"
-              className={
-                mode === "view"
-                  ? "underline font-semibold"
-                  : "text-gray-500 hover:underline"
-              }
-              onClick={() => setMode("view")}
-            >
-              View
-            </button>
-            <span className="text-gray-400">|</span>
-            <button
-              type="button"
-              className={
-                mode === "edit"
-                  ? "underline font-semibold"
-                  : "text-gray-500 hover:underline"
-              }
-              onClick={() => setMode("edit")}
-            >
-              Edit
-            </button>
-          </div>
-        </header>
+    <AppShell>
+      {/* Header + top-level mode switch (View / Edit) */}
+      <header className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">{account.name}</h1>
+        <div className="flex items-center gap-2 text-sm">
+          <button
+            type="button"
+            className={
+              mode === "view"
+                ? "underline font-semibold"
+                : "text-gray-500 hover:underline"
+            }
+            onClick={() => setMode("view")}
+          >
+            View
+          </button>
+          <span className="text-gray-400">|</span>
+          <button
+            type="button"
+            className={
+              mode === "edit"
+                ? "underline font-semibold"
+                : "text-gray-500 hover:underline"
+            }
+            onClick={() => setMode("edit")}
+          >
+            Edit
+          </button>
+        </div>
+      </header>
 
-        {mode === "view" && (
-          <AccountView
-            account={account}
-            accountId={accountId}
-            refreshKey={refreshKey}
-            onRefresh={bumpRefresh}
-          />
-        )}
+      {mode === "view" && (
+        <AccountView
+          account={account}
+          accountId={accountId}
+          refreshKey={refreshKey}
+          onRefresh={bumpRefresh}
+        />
+      )}
 
-        {mode === "edit" && (
-          <EditAccountForm
-            account={{
-              id: account.id,
-              name: account.name,
-              currency: account.currency,
-              description: account.description,
-              notes: account.notes
-            }}
-            onSaved={() => {
-              bumpRefresh();
-  
-            }}
-
-          />
-        )}
-      </main>
-    </RequireAuth>
+      {mode === "edit" && (
+        <EditAccountForm
+          account={{
+            id: account.id,
+            name: account.name,
+            currency: account.currency,
+            description: account.description,
+            notes: account.notes
+          }}
+          onSaved={() => {
+            bumpRefresh();
+          }}
+        />
+      )}
+    </AppShell>
   );
 }

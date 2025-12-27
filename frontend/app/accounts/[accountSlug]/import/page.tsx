@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import RequireAuth from "@/components/RequireAuth";
 import { api, ApiError } from "@/lib/api";
 import { handleError } from "@/lib/error";
-import NavBar from "@/components/NavBar";
 import type { AccountDetail } from "@/types/api";
 import ImportTransactions from "@/components/transactions/ImportTransactions";
+import AppShell from "@/components/layout/AppShell";
 
 
 export default function AccountImportTransactionsPage() {
@@ -62,10 +61,7 @@ export default function AccountImportTransactionsPage() {
   // Quiet UI while redirecting
   if (redirecting) {
     return (
-      <RequireAuth>
-        <NavBar />
-        <main className="max-w-4xl min-h-screen p-6 space-y-6 align-middle mx-auto" />
-      </RequireAuth>
+        <AppShell></AppShell>
     );
   }
 
@@ -73,21 +69,18 @@ export default function AccountImportTransactionsPage() {
   if (!account ) {
     const message = loading ? "Loading..." : err || "Account not found";
     return (
-      <RequireAuth>
-        <NavBar />
-        <main className="max-w-4xl min-h-screen p-6 space-y-6 align-middle mx-auto">
+
+         <AppShell> 
           <header className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold">{message}</h1>
           </header>
-        </main>
-      </RequireAuth>
+          </AppShell>
+   
     );
   }
 
   return (
-    <RequireAuth>
-      <NavBar />
-      <main className="max-w-4xl min-h-screen p-6 space-y-6 align-middle mx-auto">
+        <AppShell >
         {/* Header + top-level mode switch (View / Edit) */}
         <header className="flex items-center justify-between">
           <h1
@@ -103,7 +96,6 @@ export default function AccountImportTransactionsPage() {
             router.push(`/accounts/${slug}`);
           }}
         />
-      </main>
-    </RequireAuth>
+      </AppShell>
   );
 }

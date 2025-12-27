@@ -1,11 +1,10 @@
 "use client";
 
-import RequireAuth from "@/components/RequireAuth";
 import AccountsList from "@/components/accounts/AccountsList";
 import CreateAccountForm from "@/components/accounts/CreateAccountForm";
 import { useEffect, useState } from "react";
 import PopupModal from "@/components/ui/Modal";
-import NavBar from "@/components/NavBar";
+import AppShell from "@/components/layout/AppShell";
 
 
 export default function AccountsPage() {
@@ -28,9 +27,7 @@ export default function AccountsPage() {
   }, [isCreateOpen]);
 
   return (
-    <RequireAuth>
-      <NavBar />
-      <main className="mx-auto max-w-3xl p-6 space-y-6">
+   <AppShell  >
         {isCreateOpen && (
           <PopupModal label="Add Account" close={() => setIsCreateOpen(false)}>
             <CreateAccountForm
@@ -43,7 +40,6 @@ export default function AccountsPage() {
         <div key={refreshKey}>
           <AccountsList openPopup={() => setIsCreateOpen(true)} />
         </div>
-      </main>
-    </RequireAuth>
+      </AppShell>
   );
 }
