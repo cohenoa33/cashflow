@@ -10,6 +10,7 @@ export type Account = {
   forecastBalance: number | string;
   createdAt: string;
   updatedAt: string;
+  dailySeries?: DailyBalancePoint[];
 };
 
 
@@ -17,6 +18,14 @@ export type BalancePoint = {
   date: string; 
   balance: number;
 };
+
+export type DailyBalancePoint = {
+  date: string;
+  balance: number;
+  income: number;
+  expense: number;
+};
+
 
 export type AccountDetail = {
   id: number;

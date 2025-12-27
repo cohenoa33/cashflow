@@ -27,14 +27,13 @@ export default function AccountsList({openPopup}:{openPopup:()=>void}) {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     load();
   }, []);
-
+  
   if (loading) return <p>Loading…</p>;
   if (err) return <p className="text-danger">{err}</p>;
-
+  
   if (items.length === 0) {
     return    <div>
       <div className="flex items-center mt-4">
@@ -46,6 +45,7 @@ export default function AccountsList({openPopup}:{openPopup:()=>void}) {
 
     </div>;
   }
+  
 
   return (
     <>
@@ -53,6 +53,8 @@ export default function AccountsList({openPopup}:{openPopup:()=>void}) {
         accounts={items.map((a) => ({
           id: a.id,
           name: a.name,
+          currency: a.currency,
+          dailySeries: a?.dailySeries||[],
           currentBalance: Number(a.currentBalance ?? 0),
           forecastBalance:
             a.forecastBalance !== undefined

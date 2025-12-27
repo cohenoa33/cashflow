@@ -48,7 +48,9 @@ export default function AccountView({
 
 
    
-          <AccountBalanceChart accountId={account.id} refreshKey={refreshKey} />
+          <AccountBalanceChart
+          currency={account.currency}
+          accountId={account.id} refreshKey={refreshKey} />
 
           {/* Add transaction modal */}
           {isAddOpen && (
