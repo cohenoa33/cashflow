@@ -12,14 +12,3 @@ export function endOfToday(): Date {
   return end;
 }
 
-export function startOfTomorrow(now: Date): Date {
-  return new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1,
-    0,
-    0,
-    0,
-    0
-  );
-}

@@ -3,7 +3,7 @@ import { prisma } from "../prisma/client";
 import { canViewAccount, isOwner, } from "../helpers";
 import { Router } from "express";
 import type { AuthenticatedRequest } from "../types/express";
-import { buildBalanceSummary, makeAccountWithSummary } from "../helpers/accounts";
+import { buildAccountDailySummaries, makeAccountWithSummary } from "../helpers/accounts";
 import { CurrencySymbols, CurrencyNames } from "../utils/currency";
 
 export const accountRouter = Router();
@@ -69,14 +69,13 @@ accountRouter.get("/", async (req: AuthenticatedRequest, res: Response) => {
       notes: true,
       startingBalance: true,
       createdAt: true,
-      updatedAt: true, transactions: {orderBy: { date: "asc" }}
+      updatedAt: true, transactions: {orderBy: { date: "asc" },}
     }
   });
 const accountWithBalances = await Promise.all(accounts.map( async (account) => {
-  const summary = buildBalanceSummary(
-    account.startingBalance,
+  const summary = buildAccountDailySummaries(
     account.transactions,
-    { ignoreTx: true }
+    account.startingBalance,
   );
 
   return makeAccountWithSummary(account, summary);
@@ -108,9 +107,9 @@ accountRouter.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
 
   if (!account) return res.status(404).json({ error: "account not found" });
 
-  const summary = buildBalanceSummary(
-  account.startingBalance,
-  account.transactions
+  const summary = buildAccountDailySummaries(
+  account.transactions,
+  account.startingBalance
 );
 
 res.json(makeAccountWithSummary(account, summary));
@@ -147,9 +146,9 @@ accountRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response) => 
     include: { transactions: { orderBy: { date: "desc" } } }
   });
 
-    const summary = buildBalanceSummary(
+    const summary = buildAccountDailySummaries(
+      account.transactions,
       account.startingBalance,
-      account.transactions
     );
 
   res.json(makeAccountWithSummary(account, summary));
@@ -202,6 +201,7 @@ if (!(await canViewAccount(req.userId, accountId))) {
         select: {
           date: true,
           amount: true,
+          type: true
         },
         orderBy: { date: "asc" },
       },
@@ -213,7 +213,7 @@ if (!(await canViewAccount(req.userId, accountId))) {
   }
 
   const starting = Number(account.startingBalance ?? 0);
-  const summary = buildBalanceSummary(starting, account.transactions);
+  const summary = buildAccountDailySummaries(account.transactions, starting);
 
   return res.json(summary.dailySeries);
 });

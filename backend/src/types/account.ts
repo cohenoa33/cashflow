@@ -1,7 +1,10 @@
 export type DailyBalancePoint = {
-  date: string; // "YYYY-MM-DD"
+  date: string;
   balance: number;
+  income: number;
+  expense: number;
 };
+
 
 export type BalanceSummary = {
   currentBalance: number;
