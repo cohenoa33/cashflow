@@ -39,7 +39,7 @@ export type AccountDetail = {
   transactions: Tx[];
 };
 
-type Tx = {
+export type Tx = {
   id: number;
   amount: number | string;
   type: string;
@@ -50,3 +50,7 @@ type Tx = {
   updatedAt: string;
   accountId: number;
 };
+
+
+export type SortBy = "date" | "amount" | "category" | "description" | "error";
+export type SortDirection = "asc" | "desc";

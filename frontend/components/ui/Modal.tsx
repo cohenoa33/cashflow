@@ -17,11 +17,11 @@ export default function PopupModal({
       aria-label={label}
     >
       {/* Backdrop (non-dismissable by click) */}
-      <div className="absolute inset-0 bg-gray-500/50 -mt-[50px]" />
+      <div className="absolute inset-0  -mt-[50px]" />
 
       {/* Dialog */}
       <div
-        className="relative z-10 w-full max-w-3xl rounded-xl bg-accent p-4 shadow-xl text-primary "
+        className="relative z-10 w-full max-w-4xl rounded-xl bg-accent p-4 shadow-xl text-primary "
         // prevent closing when clicking inside
         onClick={(e) => e.stopPropagation()}
       >

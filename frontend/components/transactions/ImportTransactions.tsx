@@ -8,12 +8,15 @@ import Button from "@/components/ui/Button";
 import TableInput from "../ui/TableInput";
 import { SPENDING_CATEGORIES, INCOME_CATEGORIES } from "@/lib/categories";
 import CategoryInput from "./CategoryInput";
+import { sortItems } from "@/lib/sort";
+import { ArrowDown, ArrowUp } from "../ui/Arrows";
 
 /* TYPES: */
 type RowWithState = CsvTransactionRow & { id: number; error?: string | null };
-type SortBy = "date" | "amount" | "category" | "description" | "error";
-type SortDirection = "asc" | "desc";
 
+ type SortBy = "date" | "amount" | "category" | "description" | "error";
+ type SortDirection = "asc" | "desc";
+ 
 export default function ImportTransactions({
   accountId,
   onComplete
@@ -334,29 +337,14 @@ export default function ImportTransactions({
       }
 
       const direction = sortBy === column && sortDirection === "asc" ? -1 : 1;
-
-      if (typeof aVal === "string" && typeof bVal === "string") {
-        return aVal.localeCompare(bVal) * direction;
-      }
-
-      if (aVal < bVal) return -1 * direction;
-      if (aVal > bVal) return 1 * direction;
-      return 0;
+      return sortItems(aVal, bVal, direction);
     });
 
     setRows(sorted);
   }
 
   function generateArrows() {
-    return sortDirection === "asc" ? (
-      <svg className="inline w-4 h-4" viewBox="0 0 14 14" fill="currentColor">
-        <path d="M6 3 L9 9 L3 9 Z" />
-      </svg>
-    ) : (
-      <svg className="inline w-4 h-4" viewBox="0 0 14 14" fill="currentColor">
-        <path d="M6 9 L9 3 L3 3 Z" />
-      </svg>
-    );
+    return sortDirection === "asc" ? <ArrowUp /> : <ArrowDown />;
   }
 
   return (

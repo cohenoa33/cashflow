@@ -15,7 +15,7 @@ Connects to the backend API for auth, accounts, and transactions.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start`
 
 ### 1. Install
 ```bash
@@ -67,7 +67,6 @@ frontend/
 │  ├─ RequireAuth.tsx            # Client-side route guard
 │  ├─ accounts/
 │  │  ├─ AccountsList.tsx
-│  │  ├─ CreateAccountForm.tsx
 │  │  ├─ EditAccountForm.tsx
 │  │  └─ DeleteAccountButton.tsx
 │  ├─ transactions/

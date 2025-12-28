@@ -59,7 +59,8 @@ export default function AccountDetailPage() {
     void loadAccount();
   }, [accountId, refreshKey, redirecting, router]);
 
-  const bumpRefresh = () => setRefreshKey((k) => k + 1);
+  const bumpRefresh = () => {
+    setRefreshKey((k) => k + 1);}
 
   // Quiet UI while redirecting
   if (redirecting) {

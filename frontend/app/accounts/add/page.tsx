@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import { CurrencyList } from "@/lib/currency";
 import { useRouter } from "next/navigation";
 import { accountUrl } from "@/lib/slug";
+import { getAmountInputValue, getAmountKeyDownValue } from "@/lib/amount";
 
 export default function AddAccountPage() {
   const [name, setName] = useState("");
@@ -71,18 +72,6 @@ export default function AddAccountPage() {
     } finally {
       setBusy(false);
     }
-  }
-
-  function numberOrNull(value: string): number | null {
-    const num = Number(value);
-    return !Number.isNaN(num) ? num : null;
-  }
-
-  function updateValue(sign?: "-" | "+"): string {
-    const num = numberOrNull(startingBalance);
-    if (num === null) return "";
-    const str = sign === "+" ? num + 1 : num - 1
-    return str.toString();
   }
 
 
@@ -150,103 +139,26 @@ export default function AddAccountPage() {
               value={startingBalance}
               maxLength={15}
               onChange={(e) => {
-                let v = e.target.value;
-
-                if (!/^[\d.-]*$/.test(v)) return;
-                if (v.length > 15) return;
-
-                const dashCount = (v.match(/-/g) || []).length;
-                if (dashCount > 1) return;
-                if (dashCount === 1 && v.indexOf("-") !== 0) return;
-
-                const dotCount = (v.match(/\./g) || []).length;
-                if (dotCount > 1) return;
-
-                if (v === "" || v === "-" || v === ".") {
-                  setStartingBalance(v);
-                  return;
-                }
-                if (v === "-.") {
-                  setStartingBalance("-0.");
-                  return;
-                }
-
-                // Normalize ".x" to "0.x" and "-.x" to "-0.x"
-                if (v.startsWith(".")) v = "0" + v;
-                if (v.startsWith("-.")) v = v.replace("-.", "-0.");
-                if (v.length > 1 && v[0] === "0" && !v.includes(".")) {
-                  setStartingBalance(v.slice(1));
-                  return;
-                }
-                if (v.length >= 3 && v.startsWith("-0") && !v.startsWith("-0.")) {
-                  const split = v.split(".");
-                  const whole = Number(split[0]);
-                  if(split.length===1 ) {
-                    setStartingBalance(whole.toString());
-                    return;
-                  } else {
-                    setStartingBalance([whole.toString(), split[1]].join("."));
-                  }
-                  return;
-                }
-
-                // IMPORTANT: keep trailing dot while typing (e.g. "12.")
-                if (v.endsWith(".")) {
-                  setStartingBalance(v);
-                  return;
-                }
-                const num = Number(v);
-         
-                if (!Number.isNaN(num)) {
-                  // 
-                  setStartingBalance(v);
+                const v = e.target.value;
+                const newValue = getAmountInputValue(v);
+                if (newValue !== undefined) {
+                  setStartingBalance(newValue);
                 }
               }}
               onKeyDown={(e) => {
-                if (e.key === "ArrowUp") {
+                const key = e.key;
+                if (
+                  key === "ArrowUp" ||
+                  key === "ArrowDown" ||
+                  key === "Backspace"
+                ) {
                   e.preventDefault();
-                  if (
-                    startingBalance === "" ||
-                    startingBalance === "-" ||
-                    startingBalance === "."
-                  ) {
-                    setStartingBalance("");
-                  } else {
-                    setStartingBalance(updateValue("+"));
-                    return;
-                  }
-                } else if (e.key === "ArrowDown") {
-                  e.preventDefault();
-                  if (
-                    startingBalance === "" ||
-                    startingBalance === "-" ||
-                    startingBalance === "."
-                  ) {
-                    setStartingBalance("-1");
-                  } else {
-                    setStartingBalance(updateValue("-"));
-                  }
-                } else if (e.key === "Backspace") {
-                  e.preventDefault();
-                  const s = String(startingBalance);
-                  if (s.length <= 1) {
-                    setStartingBalance("");
-                  } else {
-                    const newS = s.slice(0, -1);
-             
-                    if (
-                      newS === "-" ||
-                      newS === "." ||
-                      newS === "0." ||
-                      newS === "-0"
-                    ) {
-                      setStartingBalance(newS);
-                    } else {
-                      const num = Number(newS);
-                      setStartingBalance(Number.isNaN(num) ? "" : String(num));
-
-      
-                    }
+                  const newValue = getAmountKeyDownValue(
+                    key as "ArrowUp" | "ArrowDown" | "Backspace",
+                    startingBalance
+                  );
+                  if (newValue !== undefined) {
+                    setStartingBalance(newValue);
                   }
                 }
               }}
@@ -254,7 +166,9 @@ export default function AddAccountPage() {
             />
           </div>
           {numberInvalid && (
-            <p className="text-xs text-red-600 mt-1">number is required. {startingBalance}</p>
+            <p className="text-xs text-red-600 mt-1">
+              number is required. {startingBalance}
+            </p>
           )}
         </div>
 
@@ -270,18 +184,12 @@ export default function AddAccountPage() {
         </div>
 
         {err && <p className="text-sm text-red-600">{err}</p>}
+  <div className="flex justify-center m-4">
 
-        <Button disabled={busy} type="submit" className=" w-full ">
+        <Button disabled={busy} type="submit" className="w-1/2 min-w-[200px]">
           {busy ? "Saving…" : "Save"}
         </Button>
-        <Button
-          variant="accent"
-          type="button"
-          onClick={close}
-          className="w-full mt-2"
-        >
-          Cancel
-        </Button>
+  </div>
       </form>
     </AppShell>
   );

@@ -10,3 +10,5 @@ export function moneyTick(n: number, currency: string = "USD") {
   if (abs >= 1000) return `${sign}${symbol}${Math.round(abs / 1000)}K`;
   return `${sign}${symbol}${abs}`;
 }
+
+

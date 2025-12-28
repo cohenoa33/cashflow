@@ -11,6 +11,7 @@ type Props = {
   placeholder?: string;
   required?: boolean;
   maxItems?: number;
+  className?: string[];
 };
 
 export default function CategoryInput({
@@ -19,7 +20,7 @@ export default function CategoryInput({
   onPick,
   options,
   placeholder,
-  required
+  required, className
 }: Props) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -52,7 +53,7 @@ export default function CategoryInput({
 
   return (
     <div
-      className={`relative p-0 ${open ? "bg-gray-100" : ""}`}
+      className={`w-full relative p-0 ${open ? "bg-gray-100" : ""}`}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node)) {
           setOpen(false);
@@ -77,7 +78,11 @@ export default function CategoryInput({
         }}
         placeholder={placeholder}
         required={required}
-        className="w-full rounded px-1 outline-none border-none bg-transparent"
+        className={
+          className
+            ? className.join(" ")
+            : `w-full rounded px-1 outline-none border-none bg-transparent`
+        }
         onKeyDown={(e) => {
           if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
             setOpen(true);
@@ -117,7 +122,7 @@ export default function CategoryInput({
       {open && suggestions.length > 0 && (
         <div
           className="absolute top-full left-0 right-0 z-50 rounded-md border bg-white shadow text-sm max-h-56 overflow-auto mt-1"
-          onWheel={(e) => e.preventDefault()}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
           onTouchMove={(e) => e.preventDefault()}
         >
           {suggestions.map((c, idx) => (

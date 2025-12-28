@@ -6,7 +6,7 @@ import AccountBalanceChart from "@/components/accounts/AccountBalanceChart";
 import TransactionsList from "@/components/transactions/TransactionsList";
 import AddTransactionForm from "@/components/transactions/AddTransactionForm";
 import { formatCurrency } from "@/lib/currency";
-import type { AccountDetail } from "@/types/api";
+import type { AccountDetail, } from "@/types/api";
 
 
 type AccountViewProps = {
@@ -24,7 +24,6 @@ export default function AccountView({
 }: AccountViewProps) {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
-
 
   return (
     <section className="space-y-6">
@@ -46,37 +45,32 @@ export default function AccountView({
         </div>
       </header>
 
+      <AccountBalanceChart
+        currency={account.currency}
+        accountId={account.id}
+        refreshKey={refreshKey}
+      />
 
-   
-          <AccountBalanceChart
-          currency={account.currency}
-          accountId={account.id} refreshKey={refreshKey} />
-
-          {/* Add transaction modal */}
-          {isAddOpen && (
-            <PopupModal
-              label="Add Transaction"
-              close={() => setIsAddOpen(false)}
-            >
-              <AddTransactionForm
-                accountId={accountId}
-                onCreated={() => {
-                  setIsAddOpen(false);
-                  onRefresh();
-                }}
-              />
-            </PopupModal>
-          )}
-
-          <TransactionsList
-            key={refreshKey}
+      {/* Add transaction modal */}
+      {isAddOpen && (
+        <PopupModal label="Add Transaction" close={() => setIsAddOpen(false)}>
+          <AddTransactionForm
             accountId={accountId}
-            currency={account.currency}
-
-            setIsAddOpen={setIsAddOpen}
+            onCreated={() => {
+              setIsAddOpen(false);
+              onRefresh();
+            }}
           />
+        </PopupModal>
+      )}
 
-      
+      <TransactionsList
+        key={refreshKey}
+        accountId={accountId}
+        currency={account.currency}
+        setIsAddOpen={setIsAddOpen}
+        onRefresh={onRefresh}
+      />
     </section>
   );
 }

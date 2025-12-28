@@ -6,64 +6,86 @@ import { handleError } from "@/lib/error";
 import Button from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/currency";
 import { useRouter } from "next/navigation";
+import { sortItems } from "@/lib/sort";
+import { ArrowDown, ArrowUp } from "../ui/Arrows";
+import { Tx } from "@/types/api";
+import { getTodayDateString } from "@/lib/date";
+import PopupModal from "../ui/Modal";
+import EditTransactionForm from "./EditTransactionForm";
 
-type Transaction = {
-  id: number;
-  amount: number | string;
-  type: string; // kept in type for PATCH payload, even if not displayed
-  description?: string | null;
-  category?: string | null;
-  date: string; // ISO string
-  createdAt: string;
-  updatedAt: string;
-  accountId: number;
-};
+
+/* TYPES: */
 
 type Props = {
   accountId: number;
   currency: string;
   setIsAddOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onRefresh: () => void;
 };
 
-export default function TransactionsList({
+ type SortBy = "date" | "amount" | "category" | "description" 
+ type SortDirection = "asc" | "desc";
+
+ export default function TransactionsList({
   accountId,
   currency,
-  setIsAddOpen
+onRefresh,
+  setIsAddOpen,
 }: Props) {
-  const [items, setItems] = useState<Transaction[]>([]);
+
+  const [tx, setTx] = useState<Tx| null>(null);
+  const [items, setItems] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const router = useRouter();
 
 
-  // edit state
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<{
-    amount: string;
-    category: string;
-    description: string;
-    date: string; // yyyy-mm-dd
-  }>({ amount: "", category: "", description: "", date: "" });
-  const [busyRow, setBusyRow] = useState<number | null>(null);
-  const [disabled, setDisabled] = useState(
-    busyRow !== null ||
-      !form.amount ||
-      Number(form.amount) === 0 ||
-      !form.category ||
-      !form.description ||
-      !form.date
-  );
+  const [sortBy, setSortBy] = useState<SortBy>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  
+   function handleSort(column: SortBy) {
+      if (sortBy === column) {
+        // Flip direction if already sorting by this column
+        setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      } else {
+        // New column, sort ascending
+        setSortBy(column);
+        setSortDirection("asc");
+      }
+  
+      const sorted = [...items].sort((a, b) => {
+        let aVal: string | number;
+        let bVal: string | number;
 
-  useEffect(() => {
-    setDisabled(
-      busyRow !== null ||
-        !form.amount ||
-        Number(form.amount) === 0 ||
-        !form.category ||
-        !form.description ||
-        !form.date
-    );
-  }, [busyRow, form]);
+        switch (column) {
+   
+          case "date":
+            aVal = a.date;
+            bVal = b.date;
+            break;
+          case "amount":
+            aVal = Number(a.amount);
+            bVal = Number(b.amount);
+            break;
+          case "category":
+            aVal = a.category || "";
+            bVal = b.category || "";
+            break;
+          case "description":
+            aVal = a.description || "";
+            bVal = b.description || "";
+            break;
+        }
+
+        const direction = sortBy === column && sortDirection === "asc" ? -1 : 1;
+        return sortItems(aVal, bVal, direction);
+      });
+  
+      setItems(sorted);
+    }
+
+
   useEffect(() => {
     if (!Number.isFinite(accountId)) return;
 
@@ -71,9 +93,7 @@ export default function TransactionsList({
       setErr(null);
       setLoading(true);
       try {
-        const res = await api<Transaction[]>(
-          `/transactions/by-account/${accountId}`
-        );
+        const res = await api<Tx[]>(`/transactions/by-account/${accountId}`);
         setItems(res);
       } catch (e) {
         setErr(handleError(e, 5));
@@ -85,69 +105,36 @@ export default function TransactionsList({
     loadTransactions();
   }, [accountId]);
 
-  function startEdit(t: Transaction) {
-    setEditingId(t.id);
-    setForm({
-      amount: String(t.amount ?? ""),
-      category: t.category ?? "",
-      description: t.description ?? "",
-      date: isoToYmd(t.date) // yyyy-mm-dd
-    });
+
+
+
+
+
+
+  // async function remove(id: number) {
+  //   if (!confirm("Delete this transaction?")) return;
+  //   try {
+  //     setBusyRow(id);
+  //     setErr(null);
+  //     await api(`/transactions/${id}`, { method: "DELETE" });
+
+  //     // update local list
+  //     setItems((prev) => prev.filter((x) => x.id !== id));
+  //   } catch (e) {
+  //     setErr(handleError(e, 4));
+  //   } finally {
+  //     setBusyRow(null);
+  //   }
+  // }
+
+
+  function generateArrows() {
+    return sortDirection === "asc" ? <ArrowUp /> : <ArrowDown />;
   }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setForm({ amount: "", category: "", description: "", date: "" });
-  }
-
-  async function saveEdit(id: number) {
-    if (disabled) return;
-    try {
-      setBusyRow(id);
-      setErr(null);
-
-      await api(`/transactions/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          amount: Number(form.amount),
-          category: form.category || undefined,
-          description: form.description || undefined,
-          date: ymdAtTenAMLocal(form.date) // normalize to 10:00 local
-        })
-      });
-
-      // refresh list (simple approach)
-      const res = await api<Transaction[]>(
-        `/transactions/by-account/${accountId}`
-      );
-      setItems(res);
-      cancelEdit();
-    } catch (e) {
-      setErr(handleError(e, 4));
-    } finally {
-      setBusyRow(null);
-    }
-  }
-
-  async function remove(id: number) {
-    if (!confirm("Delete this transaction?")) return;
-    try {
-      setBusyRow(id);
-      setErr(null);
-      await api(`/transactions/${id}`, { method: "DELETE" });
-
-      // update local list
-      setItems((prev) => prev.filter((x) => x.id !== id));
-    } catch (e) {
-      setErr(handleError(e, 4));
-    } finally {
-      setBusyRow(null);
-    }
-  }
-
 
   if (loading) return <p>Loading transactions…</p>;
   if (err) return <p className="text-red-600">{err}</p>;
+
   if (items.length === 0)
     return (
       <section className="space-y-2 rounded-xl border p-4">
@@ -182,6 +169,22 @@ export default function TransactionsList({
 
   return (
     <section className="space-y-2 rounded-xl border p-4 bg-white">
+
+      {/* Add transaction modal */}
+      {isEditOpen && tx && (
+        <PopupModal label="Edit transaction" close={() => setIsEditOpen(false)}>
+          <EditTransactionForm
+            accountId={accountId}
+            tx={tx}
+            onCreated={(txs: Tx[]) => {
+              setItems(txs);
+              setIsEditOpen(false);
+               onRefresh();
+            }}
+            close={() => setIsEditOpen(false)}
+          />
+        </PopupModal>
+      )}
       <h2 className="text-lg font-semibold"></h2>
       <div className="flex justify-end gap-4 text-sm pb-4">
         <button
@@ -200,118 +203,74 @@ export default function TransactionsList({
           Import transactions
         </button>
       </div>
-
       <div className="grid grid-cols-5 gap-2 px-2 text-xs font-bold text-primary/70 uppercase border-b pb-2">
-        <span>Amount</span>
-        <span>Category</span>
-        <span>Description</span>
-        <span>Date</span>
+        <span onClick={() => handleSort("date")}>
+          {" "}
+          Date {sortBy === "date" && generateArrows()}
+        </span>
+        <span onClick={() => handleSort("amount")}>
+          {" "}
+          Amount {sortBy === "amount" && generateArrows()}
+        </span>
+        <span onClick={() => handleSort("description")}>
+          {" "}
+          Description {sortBy === "description" && generateArrows()}
+        </span>
+        <span onClick={() => handleSort("category")}>
+          {" "}
+          Category {sortBy === "category" && generateArrows()}
+        </span>
         <span className="text-right">Actions</span>
       </div>
-
       <ul className="divide-y">
         {items.map((t) => {
-          const isEditing = editingId === t.id;
+  
           return (
             <li
               key={t.id}
               className="grid grid-cols-5 gap-2 py-2 text-sm items-center"
             >
+              {/* Date (yyyy-mm-dd) */}
+              <div className="col-span-1">
+                
+                  <span>{getTodayDateString(t.date)}</span>
+      
+              </div>
               {/* Amount */}
               <div className="col-span-1">
-                {isEditing ? (
-                  <input
-                    className="w-full rounded border p-1"
-                    type="number"
-                    step="0.01"
-                    value={form.amount}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, amount: e.target.value }))
-                    }
-                  />
-                ) : (
+              
                   <span>
                     {" "}
                     {formatCurrency(Number(t.amount ?? 0), currency)}
                   </span>
-                )}
+           
               </div>
-
-              {/* Category */}
-              <div className="col-span-1">
-                {isEditing ? (
-                  <input
-                    className="w-full rounded border p-1"
-                    value={form.category}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, category: e.target.value }))
-                    }
-                  />
-                ) : (
-                  <span>{t.category || "-"}</span>
-                )}
-              </div>
-
               {/* Description */}
               <div className="col-span-1">
-                {isEditing ? (
-                  <input
-                    className="w-full rounded border p-1"
-                    value={form.description}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, description: e.target.value }))
-                    }
-                  />
-                ) : (
+           
                   <span>{t.description || "-"}</span>
-                )}
+        
               </div>
-
-              {/* Date (yyyy-mm-dd) */}
+              {/* Category */}
               <div className="col-span-1">
-                {isEditing ? (
-                  <input
-                    className="w-full rounded border p-1"
-                    type="date"
-                    value={form.date}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, date: e.target.value }))
-                    }
-                  />
-                ) : (
-                  <span>{isoToYmd(t.date)}</span>
-                )}
+                  <span>{t.category || "-"}</span>
               </div>
 
               {/* Actions */}
               <div className="col-span-1 flex items-center justify-end gap-2">
-                {isEditing ? (
+              
                   <>
                     <Button
-                      onClick={() => saveEdit(t.id)}
-                      disabled={busyRow === t.id}
-                      className="bg-danger px-1.5 "
+                      className="px-1.5"
+                      onClick={() => {
+                        setTx(t);
+                        setIsEditOpen(true)}}
                     >
-                      {busyRow === t.id ? "Saving…" : "Save"}
-                    </Button>
-                    <Button className="px-1.5" onClick={cancelEdit}>
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button className="px-1.5" onClick={() => startEdit(t)}>
                       Edit
                     </Button>
-                    <Button
-                      onClick={() => remove(t.id)}
-                      disabled={busyRow === t.id}
-                      className="bg-danger px-1.5"
-                    >
-                      {busyRow === t.id ? "Deleting…" : "Delete"}
-                    </Button>
+  
                   </>
-                )}
+  
               </div>
             </li>
           );
@@ -321,21 +280,4 @@ export default function TransactionsList({
   );
 }
 
-/* ------------ helpers ------------ */
 
-// to yyyy-mm-dd (local)
-function isoToYmd(iso: string): string {
-  const d = new Date(iso);
-  const y = d.getFullYear();
-  const m = `${d.getMonth() + 1}`.padStart(2, "0");
-  const day = `${d.getDate()}`.padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-// from yyyy-mm-dd to ISO at 10:00 local
-function ymdAtTenAMLocal(ymd?: string): string | undefined {
-  if (!ymd) return undefined;
-  const [y, m, d] = ymd.split("-").map(Number);
-  const dt = new Date(y, (m ?? 1) - 1, d ?? 1, 10, 0, 0, 0);
-  return dt.toISOString();
-}
