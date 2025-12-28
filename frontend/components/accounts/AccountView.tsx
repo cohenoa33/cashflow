@@ -22,15 +22,34 @@ export default function AccountView({
   refreshKey,
   onRefresh
 }: AccountViewProps) {
+  console.log("Rendering AccountView for account:", account);
 
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isNoteOpen, setIsNoteOpen] = useState(false);
+
+  const notes = account.notes && account.notes.length > 0 ? account.notes : null;
+  const description =
+    account.description && account.description.length > 0
+      ? account.description
+      : null;
 
   return (
     <section className="space-y-6">
       {/* Top row: balances + actions */}
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between text-sm">
         <div>
-          <p className="text-sm text-gray-600">
+          <p className="flex items-start gap-2">
+           {description && <span>{description}</span>}
+            {notes && (
+              <button
+                className="text-gray-500 underline "
+                onClick={() => setIsNoteOpen(true)}
+              >
+              notes
+              </button>
+            )}
+          </p>{" "}
+          <p className="text-gray-600">
             Current{" "}
             {formatCurrency(
               Number(account.currentBalance ?? 0),
@@ -61,6 +80,16 @@ export default function AccountView({
               onRefresh();
             }}
           />
+        </PopupModal>
+      )}
+      {/* note view modal */}
+      {isNoteOpen && notes && (
+        <PopupModal label={`Notes:`} close={() => setIsNoteOpen(false)}>
+          <div className="prose max-h-[70vh] overflow-y-auto p-4">
+            {notes.split("\n").map((line, idx) => (
+              <p key={idx}>{line}</p>
+            ))}
+          </div>
         </PopupModal>
       )}
 

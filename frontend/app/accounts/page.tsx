@@ -51,55 +51,58 @@ export default function AccountsPage() {
     </div>;
   }
   return (
-   <AppShell  >
-      
-       <>
-            <AccountsOverviewChart
-              accounts={items.map((a) => ({
-                id: a.id,
-                name: a.name,
-                currency: a.currency,
-                dailySeries: a?.dailySeries||[],
-                currentBalance: Number(a.currentBalance ?? 0),
-                forecastBalance:
-                  a.forecastBalance !== undefined
-                    ? Number(a.forecastBalance)
-                    : undefined
-              }))}
-            />
-            <div className="flex flex-col">
-              <div className="flex items-center mt-4">
-                <Button onClick={()=>{
-                  router.push("/accounts/add")
-                }} className="ml-auto">
-                  Add Account
-                </Button>
-              </div>
-      
-              <ul className="divide-y rounded-xl border mt-4">
-                {items.map((a) => (
-                  <li key={a.id} className="flex items-center justify-between p-4 ">
-                    <div>
-                      <div className="font-medium">{a.name}</div>
-                      <div className="text-sm text-primary">
-                        Current:{" "}
-                        {formatCurrency(Number(a.currentBalance ?? 0), a.currency)} •
-                        Forecast:{" "}
-                        {formatCurrency(Number(a.forecastBalance ?? 0), a.currency)}
-                      </div>
-                    </div>
-                    <a
-                      className="text-sm underline"
-                      href={accountUrl(a.id, a.name)}
-                      title="View account"
-                    >
-                      Open
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </>
-        </AppShell>
-    );
+    <AppShell>
+      <>
+        <AccountsOverviewChart
+          accounts={items.map((a) => ({
+            id: a.id,
+            name: a.name,
+            currency: a.currency,
+            dailySeries: a?.dailySeries || [],
+            currentBalance: Number(a.currentBalance ?? 0),
+            forecastBalance:
+              a.forecastBalance !== undefined
+                ? Number(a.forecastBalance)
+                : undefined
+          }))}
+        />
+        <div className="flex flex-col">
+          <div className="flex items-center mt-4">
+            <Button
+              onClick={() => {
+                router.push("/accounts/add");
+              }}
+              className="ml-auto"
+            >
+              Add Account
+            </Button>
+          </div>
+
+          <ul className="divide-y rounded-xl border mt-4">
+            {items.map((a) => (
+              <li key={a.id} className="flex items-center justify-between p-4 ">
+                <div>
+                  <div className="font-medium">{a.name}</div>
+                  <div className="text-sm text-primary">{a.description} </div>
+                  <div className="text-sm text-primary">
+                    Current:{" "}
+                    {formatCurrency(Number(a.currentBalance ?? 0), a.currency)}{" "}
+                    • Forecast:{" "}
+                    {formatCurrency(Number(a.forecastBalance ?? 0), a.currency)}
+                  </div>
+                </div>
+                <a
+                  className="text-sm underline"
+                  href={accountUrl(a.id, a.name)}
+                  title="View account"
+                >
+                  Open
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </>
+    </AppShell>
+  );
 }
