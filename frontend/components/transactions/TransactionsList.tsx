@@ -3,16 +3,14 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
-import Button from "@/components/ui/Button";
+import Button, { SortButton } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/currency";
 import { useRouter } from "next/navigation";
 import { sortItems } from "@/lib/sort";
-import { ArrowDown, ArrowUp } from "../ui/Arrows";
 import { Tx } from "@/types/api";
 import { getTodayDateString } from "@/lib/date";
 import PopupModal from "../ui/Modal";
 import EditTransactionForm from "./EditTransactionForm";
-
 
 /* TYPES: */
 
@@ -23,68 +21,71 @@ type Props = {
   onRefresh: () => void;
 };
 
- type SortBy = "date" | "amount" | "category" | "description" 
- type SortDirection = "asc" | "desc";
+type SortBy = "date" | "amount" | "category" | "description";
+type SortDirection = "asc" | "desc";
 
- export default function TransactionsList({
+const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50] as const;
+
+export default function TransactionsList({
   accountId,
   currency,
-onRefresh,
-  setIsAddOpen,
+  onRefresh,
+  setIsAddOpen
 }: Props) {
-
-  const [tx, setTx] = useState<Tx| null>(null);
+  const [tx, setTx] = useState<Tx | null>(null);
   const [items, setItems] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const router = useRouter();
-
 
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  
-   function handleSort(column: SortBy) {
-      if (sortBy === column) {
-        // Flip direction if already sorting by this column
-        setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-      } else {
-        // New column, sort ascending
-        setSortBy(column);
-        setSortDirection("asc");
-      }
-  
-      const sorted = [...items].sort((a, b) => {
-        let aVal: string | number;
-        let bVal: string | number;
 
-        switch (column) {
-   
-          case "date":
-            aVal = a.date;
-            bVal = b.date;
-            break;
-          case "amount":
-            aVal = Number(a.amount);
-            bVal = Number(b.amount);
-            break;
-          case "category":
-            aVal = a.category || "";
-            bVal = b.category || "";
-            break;
-          case "description":
-            aVal = a.description || "";
-            bVal = b.description || "";
-            break;
-        }
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const paginatedItems = items.slice(startIdx, startIdx + itemsPerPage);
 
-        const direction = sortBy === column && sortDirection === "asc" ? -1 : 1;
-        return sortItems(aVal, bVal, direction);
-      });
-  
-      setItems(sorted);
+  function handleSort(column: SortBy) {
+    if (sortBy === column) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(column);
+      setSortDirection("asc");
     }
 
+    const sorted = [...items].sort((a, b) => {
+      let aVal: string | number;
+      let bVal: string | number;
+
+      switch (column) {
+        case "date":
+          aVal = a.date;
+          bVal = b.date;
+          break;
+        case "amount":
+          aVal = Number(a.amount);
+          bVal = Number(b.amount);
+          break;
+        case "category":
+          aVal = a.category || "";
+          bVal = b.category || "";
+          break;
+        case "description":
+          aVal = a.description || "";
+          bVal = b.description || "";
+          break;
+      }
+
+      const direction = sortBy === column && sortDirection === "asc" ? -1 : 1;
+      return sortItems(aVal, bVal, direction);
+    });
+
+    setItems(sorted);
+    setCurrentPage(1);
+  }
 
   useEffect(() => {
     if (!Number.isFinite(accountId)) return;
@@ -95,6 +96,7 @@ onRefresh,
       try {
         const res = await api<Tx[]>(`/transactions/by-account/${accountId}`);
         setItems(res);
+        setCurrentPage(1);
       } catch (e) {
         setErr(handleError(e, 5));
       } finally {
@@ -106,31 +108,6 @@ onRefresh,
   }, [accountId]);
 
 
-
-
-
-
-
-  // async function remove(id: number) {
-  //   if (!confirm("Delete this transaction?")) return;
-  //   try {
-  //     setBusyRow(id);
-  //     setErr(null);
-  //     await api(`/transactions/${id}`, { method: "DELETE" });
-
-  //     // update local list
-  //     setItems((prev) => prev.filter((x) => x.id !== id));
-  //   } catch (e) {
-  //     setErr(handleError(e, 4));
-  //   } finally {
-  //     setBusyRow(null);
-  //   }
-  // }
-
-
-  function generateArrows() {
-    return sortDirection === "asc" ? <ArrowUp /> : <ArrowDown />;
-  }
 
   if (loading) return <p>Loading transactions…</p>;
   if (err) return <p className="text-red-600">{err}</p>;
@@ -151,10 +128,7 @@ onRefresh,
           <button
             type="button"
             className={"text-gray-500 hover:underline"}
-            onClick={
-    
-              () => router.push(`/accounts/${accountId}/import`)
-            }
+            onClick={() => router.push(`/accounts/${accountId}/import`)}
           >
             Import transactions
           </button>
@@ -165,12 +139,17 @@ onRefresh,
       </section>
     );
 
-    
-
+  function toggleSort(next: SortBy) {
+    if (sortBy === next) {
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(next);
+      setSortDirection(next === "date" ? "asc" : "desc");
+    }
+    handleSort(next)
+  }
   return (
-    <section className="space-y-2 rounded-xl border p-4 bg-white">
-
-      {/* Add transaction modal */}
+    <section className="space-y-2 rounded-xl border p-4">
       {isEditOpen && tx && (
         <PopupModal label="Edit transaction" close={() => setIsEditOpen(false)}>
           <EditTransactionForm
@@ -179,7 +158,7 @@ onRefresh,
             onCreated={(txs: Tx[]) => {
               setItems(txs);
               setIsEditOpen(false);
-               onRefresh();
+              onRefresh();
             }}
             close={() => setIsEditOpen(false)}
           />
@@ -203,81 +182,141 @@ onRefresh,
           Import transactions
         </button>
       </div>
-      <div className="grid grid-cols-5 gap-2 px-2 text-xs font-bold text-primary/70 uppercase border-b pb-2">
-        <span onClick={() => handleSort("date")}>
-          {" "}
-          Date {sortBy === "date" && generateArrows()}
-        </span>
-        <span onClick={() => handleSort("amount")}>
-          {" "}
-          Amount {sortBy === "amount" && generateArrows()}
-        </span>
-        <span onClick={() => handleSort("description")}>
-          {" "}
-          Description {sortBy === "description" && generateArrows()}
-        </span>
-        <span onClick={() => handleSort("category")}>
-          {" "}
-          Category {sortBy === "category" && generateArrows()}
-        </span>
-        <span className="text-right">Actions</span>
-      </div>
-      <ul className="divide-y">
-        {items.map((t) => {
-  
-          return (
-            <li
-              key={t.id}
-              className="grid grid-cols-5 gap-2 py-2 text-sm items-center"
-            >
-              {/* Date (yyyy-mm-dd) */}
-              <div className="col-span-1">
-                
-                  <span>{getTodayDateString(t.date)}</span>
-      
-              </div>
-              {/* Amount */}
-              <div className="col-span-1">
-              
-                  <span>
-                    {" "}
-                    {formatCurrency(Number(t.amount ?? 0), currency)}
-                  </span>
-           
-              </div>
-              {/* Description */}
-              <div className="col-span-1">
-           
-                  <span>{t.description || "-"}</span>
-        
-              </div>
-              {/* Category */}
-              <div className="col-span-1">
-                  <span>{t.category || "-"}</span>
-              </div>
 
-              {/* Actions */}
-              <div className="col-span-1 flex items-center justify-end gap-2">
-              
-                  <>
+      <div className="overflow-auto rounded-lg border bg-white/60 ">
+        <table className="min-w-full text-sm border border-white">
+          <thead className="bg-gray-50 text-left">
+            <tr className=" text-gray-600">
+              <th className="px-3 py-2">
+                <SortButton
+                  active={sortBy === "date"}
+                  dir={sortDirection}
+                  onClick={() => toggleSort("date")}
+                >
+                  Date
+                </SortButton>
+              </th>
+              <th className="px-3 py-2 whitespace-nowrap">
+                <SortButton
+                  active={sortBy === "amount"}
+                  dir={sortDirection}
+                  onClick={() => toggleSort("amount")}
+                >
+                  Amount
+                </SortButton>
+              </th>
+              <th className="px-3 py-2 whitespace-nowrap">
+                <SortButton
+                  active={sortBy === "description"}
+                  dir={sortDirection}
+                  onClick={() => toggleSort("description")}
+                >
+                  Description
+                </SortButton>
+              </th>
+              <th className="px-3 py-2 whitespace-nowrap">
+                <SortButton
+                  active={sortBy === "category"}
+                  dir={sortDirection}
+                  onClick={() => toggleSort("category")}
+                >
+                  Category
+                </SortButton>
+              </th>
+              <th className="px-3 py-2 whitespace-nowrap">...</th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y">
+            {paginatedItems.map((t) => {
+              return (
+                <tr
+                  key={t.id}
+                  className="hover:bg-gray-50/60 align-top h-[50px]"
+                  style={{ cursor: "pointer" }}
+                >
+                  <td className="px-3 py-2 max-w-[250px]">
+                    {getTodayDateString(t.date)}
+                  </td>
+
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {formatCurrency(Number(t.amount ?? 0), currency)}
+                  </td>
+
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {t.description || "-"}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {t.category || "-"}
+                  </td>
+
+                  <td>
                     <Button
                       className="px-1.5"
                       onClick={() => {
                         setTx(t);
-                        setIsEditOpen(true)}}
+                        setIsEditOpen(true);
+                      }}
                     >
                       Edit
                     </Button>
-  
-                  </>
-  
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                  </td>
+                </tr>
+              );
+            })}
+
+            {paginatedItems.length === 0 && (
+              <tr>
+                <td className="px-3 py-8 text-center text-gray-500" colSpan={5}>
+                  No accounts yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between gap-4 pt-2 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-600">Show:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-2 py-1 border rounded text-sm outline-none"
+          >
+            {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <span className="text-gray-600">per page</span>
+        </div>
+        <span className="text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3"
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </section>
   );
 }
-
-

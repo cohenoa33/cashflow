@@ -68,29 +68,26 @@ transactionRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response)
   if (!(await canViewAccount(req.userId, existing.accountId))) {
     return res.status(403).json({ error: "forbidden" });
   }
-
-  // compute balance delta according to your rule (date <= today)
-  const prevAmt = Number(existing.amount);
-  const prevAffects = affectsBalance(existing.date);
-
   const nextDate = req.body.date ? new Date(req.body.date) : existing.date;
-  const nextAmt =
-    req.body.amount !== undefined ? Number(req.body.amount) : prevAmt;
-  const nextAffects = affectsBalance(nextDate);
 
-  // If both affect balance → delta is (next - prev)
-  // If only prev affected → subtract prev
-  // If only next affects → add next
-  let delta = 0;
-  if (prevAffects && nextAffects) delta = nextAmt - prevAmt;
-  else if (prevAffects && !nextAffects) delta = -prevAmt;
-  else if (!prevAffects && nextAffects) delta = nextAmt;
+
+    let nextType = undefined;
+    if (req.body.type) {
+    nextType = req.body.type;
+    } else if (req.body.amount !== undefined) {
+    if (req.body.amount === 0) {
+      return res.status(400).json({ error: "amount cannot be 0" });
+    }
+    nextType = req.body.amount > 0 ? "income" : "expense";
+    }
+
+
 
   const updated = await prisma.transaction.update({
     where: { id },
     data: {
       amount: req.body.amount ?? undefined,
-      type: req.body.type ?? undefined,
+      type: nextType,
       description: req.body.description ?? undefined,
       category: req.body.category ?? undefined,
       date: req.body.date ? nextDate : undefined

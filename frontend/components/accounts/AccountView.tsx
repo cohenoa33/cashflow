@@ -22,7 +22,7 @@ export default function AccountView({
   refreshKey,
   onRefresh
 }: AccountViewProps) {
-  console.log("Rendering AccountView for account:", account);
+
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isNoteOpen, setIsNoteOpen] = useState(false);

@@ -4,12 +4,11 @@ import { useState, DragEvent } from "react";
 import { parseTransactionsCsv, CsvTransactionRow } from "@/lib/csv";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
-import Button from "@/components/ui/Button";
+import Button, { SortButton } from "@/components/ui/Button";
 import TableInput from "../ui/TableInput";
 import { SPENDING_CATEGORIES, INCOME_CATEGORIES } from "@/lib/categories";
 import CategoryInput from "./CategoryInput";
 import { sortItems } from "@/lib/sort";
-import { ArrowDown, ArrowUp } from "../ui/Arrows";
 
 /* TYPES: */
 type RowWithState = CsvTransactionRow & { id: number; error?: string | null };
@@ -343,9 +342,6 @@ export default function ImportTransactions({
     setRows(sorted);
   }
 
-  function generateArrows() {
-    return sortDirection === "asc" ? <ArrowUp /> : <ArrowDown />;
-  }
 
   return (
     <section className="space-y-4">
@@ -393,36 +389,50 @@ export default function ImportTransactions({
                 <table className="min-w-full border-collapse">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th
-                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort("date")}
-                      >
-                        Date {sortBy === "date" && generateArrows()}
+                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
+                        <SortButton
+                          active={sortBy === "date"}
+                          dir={sortDirection}
+                          onClick={() => handleSort("date")}
+                        >
+                          Date
+                        </SortButton>
                       </th>
-                      <th
-                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort("amount")}
-                      >
-                        Amount {sortBy === "amount" && generateArrows()}
+                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
+                        <SortButton
+                          active={sortBy === "amount"}
+                          dir={sortDirection}
+                          onClick={() => handleSort("amount")}
+                        >
+                          Amount
+                        </SortButton>
                       </th>
-                      <th
-                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort("description")}
-                      >
-                        Description{" "}
-                        {sortBy === "description" && generateArrows()}
+                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
+                        <SortButton
+                          active={sortBy === "description"}
+                          dir={sortDirection}
+                          onClick={() => handleSort("description")}
+                        >
+                          Description
+                        </SortButton>
                       </th>
-                      <th
-                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort("category")}
-                      >
-                        Category {sortBy === "category" && generateArrows()}
+                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
+                        <SortButton
+                          active={sortBy === "category"}
+                          dir={sortDirection}
+                          onClick={() => handleSort("category")}
+                        >
+                          Category
+                        </SortButton>
                       </th>
-                      <th
-                        className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort("error")}
-                      >
-                        Error {sortBy === "error" && generateArrows()}
+                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
+                        <SortButton
+                          active={sortBy === "error"}
+                          dir={sortDirection}
+                          onClick={() => handleSort("error")}
+                        >
+                          Error
+                        </SortButton>
                       </th>
                     </tr>
                   </thead>

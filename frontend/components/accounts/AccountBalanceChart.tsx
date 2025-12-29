@@ -66,7 +66,7 @@ export default function AccountBalanceChart({
   if (data.length === 0) return <></>;
 
   return (
-    <div className="h-96 w-full">
+    <div className="h-96 w-full focus:outline-none focus-visible:outline-none ">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
           data={data}
@@ -75,7 +75,7 @@ export default function AccountBalanceChart({
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis tickFormatter={(n) => moneyTick(n, currency)} />
-          <Tooltip formatter={(v) => moneyTick(Number(v), currency  )} />
+          <Tooltip formatter={(v) => moneyTick(Number(v), currency)} />
 
           {/* dashed zero baseline */}
           <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="6 4" />
@@ -90,7 +90,7 @@ export default function AccountBalanceChart({
           <Bar
             dataKey="expense"
             fill="#d76161"
-            radius={[0, 0, 6, 6]}
+            radius={[6,6,0,0]}
             barSize={18}
           />
 

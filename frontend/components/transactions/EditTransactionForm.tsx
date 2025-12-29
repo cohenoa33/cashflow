@@ -29,7 +29,7 @@ export default function EditTransactionForm({
   const [disabled, setDisabled] = useState(
     busy ||
       !amount ||
-      Number(amount) === 0 ||
+      Number(amount) === 0 ||isNaN(Number(amount)) ||
       !category ||
       !description ||
       !date
@@ -42,7 +42,7 @@ export default function EditTransactionForm({
   useEffect(() => {
     setDisabled(
       busy ||
-        !amount ||
+        !amount || amount.trim() === "-" ||
         Number(amount) === 0 ||
         !category ||
         !description ||
@@ -54,33 +54,41 @@ export default function EditTransactionForm({
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (disabled) return;
-    try {
-      setBusy(true);
-      setErr(null);
 
-      await api(`/transactions/${tx.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          amount: Number(amount),
-          category: category || undefined,
-          description: description || undefined,
-          date: dateAtTenAMLocal(date) // normalize to 10:00 local
-        })
-      });
-
-      // refresh list (simple approach)
-      const res = await api<Tx[]>(`/transactions/by-account/${accountId}`);
-      onCreated(res);
-    } catch (e) {
-      setErr(handleError(e, 4));
-    } finally {
-      close();
+    console.log("Submitting edit transaction:", amount); 
+    if (!Number(amount)){
+      setErr("Amount must be a valid number");
+      return;
     }
+      try {
+        setBusy(true);
+        setErr(null);
+
+        await api(`/transactions/${tx.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            amount: Number(amount),
+            category: category || undefined,
+            description: description || undefined,
+            date: dateAtTenAMLocal(date) // normalize to 10:00 local
+          })
+        });
+
+        // refresh list (simple approach)
+        const res = await api<Tx[]>(`/transactions/by-account/${accountId}`);
+        onCreated(res);
+      } catch (e) {
+        setErr(handleError(e, 4));
+      } finally {
+        close();
+      }
   }
+    console.log("Submitting edit transaction:", err, amount); 
 
   async function remove() {
     if (!confirm("Delete this transaction?")) return;
     if(busy) return;
+
     try {
       setBusy(true);
       setErr(null);
@@ -211,7 +219,7 @@ export default function EditTransactionForm({
 
           <div className="flex justify-center mt-4">
             <Button
-              disabled={busy}
+              disabled={disabled}
               type="submit"
               className="w-1/2 min-w-[200px]"
             >

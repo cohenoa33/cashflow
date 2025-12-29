@@ -30,24 +30,47 @@ export default function AccountsPage() {
     load();
   }, []);
 
-  if (loading) return <p>Loading…</p>;
-  if (err) return <p className="text-danger">{err}</p>;
+  if (loading) {
+    return<AppShell>
+    <section >
+        <div className="p-4 space-y-4  items-center mt-4">
+          <div>Loading...</div>
+        </div>
+      </section>
+      </AppShell>
+    }
+  
+  if (err) {
+     return (
+       <AppShell>
+         <section>
+           <div className="p-4 space-y-4  items-center mt-4">
+             <div className="text-danger">{err}</div>
+           </div>
+         </section>
+       </AppShell>
+     );
+    }
 
   if (items.length === 0) {
     return (
-      <div>
-        <div className="flex items-center mt-4">
-          <Button
-            onClick={() => {
-              router.push("/accounts/add");
-            }}
-            className="ml-auto"
-          >
-            Add Account
-          </Button>
+      <AppShell>
+        <section >
+        <div className="p-4 space-y-4  items-center mt-4">
+          <div>Click the button above to add your first account!</div>
+          <div className="flex items-center mt-4">
+            <Button
+              onClick={() => {
+                router.push("/accounts/add");
+              }}
+              className="ml-auto"
+            >
+              Add Account
+            </Button>
+          </div>
         </div>
-        <div> No accounts yet</div>
-      </div>
+      </section>
+      </AppShell>
     );
   }
 
@@ -68,9 +91,7 @@ export default function AccountsPage() {
   }
   return (
     <AppShell>
-
-     
-        <AccountsOverviewTable accounts={items} />
+      <AccountsOverviewTable accounts={items} />
     </AppShell>
   );
 }

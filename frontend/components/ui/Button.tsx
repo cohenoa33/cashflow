@@ -43,3 +43,34 @@ export default function Button({
     </button>
   );
 }
+
+
+
+export function SortButton({
+  children,
+  active,
+  dir,
+  onClick
+}: {
+  children: React.ReactNode;
+  active: boolean;
+  dir: "asc" | "desc";
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "inline-flex items-center gap-1 hover:underline",
+        active ? "text-gray-900" : "text-gray-600"
+      ].join(" ")}
+      title="Sort"
+    >
+      {children}
+      <span className="text-[10px]">
+        {active ? (dir === "asc" ? "▲" : "▼") : ""}
+      </span>
+    </button>
+  );
+}
