@@ -97,9 +97,7 @@ export default function EditTransactionForm({
 
    function addCategoryToSuggestions(value: string) {
      const trimmed = value.trim();
-
      if (!trimmed) return;
-
      setCategories((prev) => {
        if (prev.has(trimmed)) return prev;
        const next = new Set(prev);
@@ -108,6 +106,7 @@ export default function EditTransactionForm({
        return next;
      });
    }
+
   return (
     <section className="space-y-6">
       {/* Box 1: */}
@@ -193,13 +192,6 @@ export default function EditTransactionForm({
             <div>
               <label className="block text-sm font-medium">Category:</label>
               <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
-                {/* <input
-                  className="w-full sm:max-w-sm rounded-lg border p-2 text-sm outline-none"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Food / Salary / Fees"
-                  required
-                /> */}
                 <CategoryInput
                   value={category}
                   onChange={(v) => setCategory(v)}
