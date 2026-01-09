@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
-import { validatePassword } from "@/lib/password";
+import { validPassword, validatePassword } from "@/lib/password";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -15,15 +15,23 @@ export default function ResetPasswordPage() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [busy, setBusy] = useState(false);
+  const [disable, setDisable] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [newTouched, setNewTouched] = useState(false);
 
   useEffect(() => {
     if (!token) {
       setErr("Invalid reset link. Please request a new password reset.");
     }
   }, [token]);
+  
+
+
+  const invalid = password.length > 0 && newTouched && !validPassword(password);
+  const same = password === confirmPassword;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,6 +68,14 @@ export default function ResetPasswordPage() {
       }, 2000);
     } catch (error: unknown) {
       setErr(handleError(error, 1));
+      if (error instanceof Error && error.message === "Invalid or expired reset token") {
+        setDisable(true)
+        // If the token is invalid or expired, redirect to forgot-password page after showing the error
+        setTimeout(() => {
+          router.push("/forgot-password");
+        }, 5000);
+      }
+
     } finally {
       setBusy(false);
     }
@@ -94,10 +110,13 @@ export default function ResetPasswordPage() {
           <PasswordInput
             maxHeight
             value={password}
-            onChange={(v) => setPassword(v)}
-            invalid={false}
+            onChange={(v) => {
+              setPassword(v);
+              setNewTouched(true);
+            }}
+            invalid={invalid}
             placeholder="••••••••"
-            disabled={busy || !token}
+            disabled={busy || !token || disable}
           />
         </label>
 
@@ -107,16 +126,23 @@ export default function ResetPasswordPage() {
             maxHeight
             value={confirmPassword}
             onChange={(v) => setConfirmPassword(v)}
-            invalid={false}
+            invalid={!same}
             placeholder="••••••••"
-            disabled={busy || !token}
+            disabled={busy || !token || disable}
           />
         </label>
-
+        <p
+          className={`mt-1 text-xs ${
+            invalid ? "text-danger" : "text-stale-500"
+          }`}
+        >
+          At least 8 characters, with uppercase, lowercase, number, and a
+          special character.
+        </p>
         {err && <p className="text-sm text-red-600">{err}</p>}
 
         <Button
-          disabled={busy || !token}
+          disabled={busy || !token || disable || !same}
           type="submit"
           className="w-full text-base"
         >

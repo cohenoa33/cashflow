@@ -7,6 +7,8 @@ import { saveToken } from "@/lib/auth";
 import { handleError } from "@/lib/error";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
+import { validEmail } from "@/lib/email";
+import { validPassword } from "@/lib/password";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +19,10 @@ export default function LoginPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+      if (!validEmail(email) || !validPassword(password)) {
+      setErr("Please enter a valid email and password.");
+      return;
+        }
     setErr(null);
     setBusy(true);
     try {
@@ -44,7 +50,7 @@ export default function LoginPage() {
         <label className="block">
           <span className="text-sm">Email</span>
           <input
-            className="mt-1 w-full rounded-lg border p-2"
+            className="mt-1 w-full rounded-lg border p-2 focus:outline-none focus:ring-0"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}

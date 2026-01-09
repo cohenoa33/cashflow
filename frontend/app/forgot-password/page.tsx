@@ -4,6 +4,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
 import Button from "@/components/ui/Button";
+import { validEmail } from "@/lib/email";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -13,14 +14,17 @@ export default function ForgotPasswordPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+   if (!validEmail(email) ) {
+      setErr("Please enter a valid email");
+      return;
+     }
+    
     setErr(null);
     setSuccess(false);
     setBusy(true);
 
     try {
-  
-
-           await api<{ token: string }>("/forgot-password", {
+    await api<{ token: string }>("/forgot-password", {
               method: "POST",
               body: JSON.stringify({ email })
             });
@@ -51,7 +55,7 @@ export default function ForgotPasswordPage() {
         <label className="block">
           <span className="text-sm">Email</span>
           <input
-            className="mt-1 w-full rounded-lg border p-2"
+            className="mt-1 w-full rounded-lg border p-2 focus:outline-none focus:ring-0"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}

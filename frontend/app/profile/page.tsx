@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
-import { PASSWORD_REGEX, validatePassword } from "@/lib/password";
+import {  validatePassword, validPassword } from "@/lib/password";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
 import AppShell from "@/components/layout/AppShell";
@@ -195,7 +195,7 @@ function handleCancelChangePassword() {
    changingPassword && currentTouched && currentPassword.trim().length === 0;
 
  const newInvalid =
-   changingPassword && newTouched && !PASSWORD_REGEX.test(newPassword);
+   changingPassword && newTouched && !validPassword(newPassword);
 
  const confirmInvalid =
    changingPassword &&

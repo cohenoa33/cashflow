@@ -24,8 +24,8 @@ export default function PasswordInput({
 }: Props) {
   const [visible, setVisible] = useState(false);
   const className = maxHeight
-    ? "mt-1 w-full rounded-lg border p-2"
-    : "w-full rounded-md border px-2 py-1 pr-9 text-sm";
+    ? "mt-1 w-full rounded-lg p-2"
+    : "w-full rounded-md px-2 py-1 pr-9 text-sm";
 
   return (
     <div className="relative w-full">
@@ -38,9 +38,8 @@ export default function PasswordInput({
         placeholder={placeholder}
         className={clsx(
           className,
-          invalid
-            ? "border-danger focus:outline-none focus:ring-1 focus:ring-danger"
-            : "border-slate-300 focus:outline-none"
+          "focus:outline-none focus:ring-0 border",
+          invalid ? "border-danger" : "border-slate-300"
         )}
       />
 
