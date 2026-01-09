@@ -17,24 +17,27 @@ export async function api<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
+
   const headers = new Headers(options.headers || {});
   headers.set("Content-Type", "application/json");
-
   const token = getToken();
   if (token) headers.set("Authorization", `Bearer ${token}`);
-
   const res = await fetch(`${BASE}${path}`, {
     ...options,
     headers,
     cache: "no-store"
   });
 
+
+
+
+
   if (!res.ok) {
     // 401: special-case auth redirect
     if (res.status === 401 && typeof window !== "undefined") {
       const isAuthPage =
         window.location.pathname === "/login" ||
-        window.location.pathname === "/register";
+        window.location.pathname === "/register" || window.location.pathname === "/forgot-password";
 
       if (!isAuthPage) {
         localStorage.removeItem("cf_token");
@@ -45,7 +48,6 @@ export async function api<T>(
     let message = res.statusText;
     try {
       const j = await res.json();
-      // backend usually returns { error: "..." }
       if (j && typeof j.error === "string") {
         message = j.error;
       }

@@ -7,7 +7,7 @@ import { PASSWORD_REGEX } from "../helpers/password";
 
 
 export async function registerRoute(req:Request, res:Response) {
-  const { email, password, name } = req.body || {};
+const { email, password, name } = req.body || {};
   if (!email || !password)
     return res.status(400).json({ error: "email & password required" });
 

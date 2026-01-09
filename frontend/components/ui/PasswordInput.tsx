@@ -10,6 +10,7 @@ type Props = {
   placeholder?: string;
   onBlur?: () => void; // used to mark field as "touched"
   maxHeight?: boolean;
+  disabled?: boolean;
 };
 
 export default function PasswordInput({
@@ -18,7 +19,8 @@ export default function PasswordInput({
   invalid = false,
   placeholder,
   onBlur,
-  maxHeight
+  maxHeight,
+  disabled
 }: Props) {
   const [visible, setVisible] = useState(false);
   const className = maxHeight
@@ -32,6 +34,7 @@ export default function PasswordInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
+        disabled={disabled}
         placeholder={placeholder}
         className={clsx(
           className,

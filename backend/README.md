@@ -42,6 +42,8 @@ DATABASE_URL="postgresql://cashflow:cashflow@localhost:5433/cashflow_dev?schema=
 PORT=4000
 CORS_ORIGIN=http://localhost:3000
 JWT_SECRET="CHANGE_ME_TO_A_SECURE_RANDOM_32+_CHAR_SECRET"
+RESEND_API_KEY=re_...
+RESEND_FROM=verified-domain-email
 ```
 
 ### 3. Start database + server
@@ -62,6 +64,8 @@ The dev script will:
 
 - **Register** → `POST /register` → `{ token }`
 - **Login** → `POST /login` → `{ token }`
+- **Forgot Password** →	`POST /forgot-password` → email reset link (expires in 15 minutes)
+- **Reset Password** →	`POST /reset-password` → validates reset token + updates password
 - Token is a **JWT**
 - Protected routes require:
 ``` http
@@ -88,6 +92,11 @@ Authentication logic is centralized and reused across routes.
 
 ### Category Suggestions
 - Rule-based suggestions
+- Token stored on user (`resetToken`, `resetTokenExpiry`)
+- 15-minute expiry window
+
+### Authentication
+- Password reset via email
 - History-based matching from user transactions
 - Designed to support future AI integration (optional)
 

@@ -31,7 +31,7 @@ The backend focuses on correctness, security, and financial calculations.
 - 📁 **CSV Import** – Bulk transaction import with review and validation
 - 🏷️ **Smart Category Suggestions** – Rule-based and history-based suggestions
 - 📱 **Responsive UI** – Designed to work well on desktop and mobile
-
+- 🔑 **Password Reset** – Forgot-password flow via email reset link (expires after 15 minutes)
 ---
 
 ## 📁 Repository Structure
@@ -85,7 +85,7 @@ Each side of the application is documented independently.
 - 🔄 Category suggestions (rules + history; AI optional later)
 - ⏳ Budgets & monthly summaries
 - ⏳ Improved mobile layout
-- ⏳  cookie-based auth for SSR
+- ⏳ Cookie-based auth for SSR
 
 
 

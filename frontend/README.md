@@ -66,6 +66,8 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 
 - `POST /register` → creates user → returns `{ token }`
 - `POST /login` → authenticates user → returns `{ token }`
+-	`POST /forgot-password` → sends reset email (15 min link)
+-	`POST /reset-password` → verifies token + sets new password
 - Missing or invalid tokens redirect the user to `/login`
 
 Backend authentication logic lives in `backend/README.md`.
@@ -83,6 +85,8 @@ frontend/
 │   ├── profile/           # User profile page
 │   ├── login/             # Login page
 │   ├── register/          # Registration page
+│   ├── forgot-password/   # Request reset email
+│   ├── reset-password/    # Set new password using token
 │   ├── layout.tsx         # Root layout
 │   └── globals.css        # Global styles
 │
@@ -95,6 +99,7 @@ frontend/
 ├── lib/
 │   ├── api.ts             # API wrapper (auth headers, error handling)
 │   ├── auth.ts            # Token helpers
+│   ├── password.ts        # Password helpers
 │   ├── csv.ts             # CSV parsing utilities
 │   ├── money.ts           # Currency formatting helpers
 │   ├── currency.ts        # Currency metadata & symbols

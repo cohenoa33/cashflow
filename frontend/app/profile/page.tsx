@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
-import { PASSWORD_REGEX } from "@/lib/password";
+import { PASSWORD_REGEX, validatePassword } from "@/lib/password";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
 import AppShell from "@/components/layout/AppShell";
@@ -140,11 +140,9 @@ export default function ProfilePage() {
      setPasswordError("Current password is required");
      return;
    }
-
-   if (!PASSWORD_REGEX.test(newPassword)) {
-     setPasswordError(
-       "New password must be at least 8 characters and include a lowercase letter, an uppercase letter, a number, and a special character"
-     );
+const passwordError = validatePassword(newPassword);
+   if (passwordError) {
+     setPasswordError(passwordError);
      return;
    }
 

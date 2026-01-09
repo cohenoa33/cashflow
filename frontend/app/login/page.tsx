@@ -25,8 +25,8 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password })
       });
       saveToken(res.token);
-      router.push("/accounts"); 
-    } catch (error: unknown) { 
+      router.push("/accounts");
+    } catch (error: unknown) {
       setErr(handleError(error, 1));
     } finally {
       setBusy(false);
@@ -66,13 +66,18 @@ export default function LoginPage() {
           />
         </label>
 
+        <div className="text-right">
+          <a
+            className="text-sm underline text-blue-600 hover:text-blue-700"
+            href="/forgot-password"
+          >
+            Forgot password?
+          </a>
+        </div>
+
         {err && <p className="text-sm text-red-600">{err}</p>}
 
-        <Button
-          disabled={busy}
-          type="submit"
-          className="w-full text-base"
-        >
+        <Button disabled={busy} type="submit" className="w-full text-base">
           {busy ? "Signing in..." : "Sign in"}
         </Button>
 
