@@ -17,6 +17,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
 
   const resend = new Resend(apiKey);
 
+
   const { error } = await resend.emails.send({
     from: process.env.RESEND_FROM || "onboarding@resend.dev",
     to: options.to,

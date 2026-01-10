@@ -61,10 +61,10 @@ describe("POST /forgot-password", () => {
 
     expect(prismaMock.user.update).toHaveBeenCalledWith({
       where: { id: 42 },
-      data: {
-        resetToken: mockTokenBuffer.toString("hex"),
+      data: expect.objectContaining({
+        resetToken: expect.any(String),
         resetTokenExpiry: expect.any(Date)
-      }
+      })
     });
 
     // Ensure expiry is roughly 15 minutes from now

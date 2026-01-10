@@ -1,8 +1,13 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { prisma } from "../prisma/client";
 import { Request, Response } from "express";
 import { PASSWORD_REGEX } from "../helpers/password";
+
+function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
 
 export async function resetPasswordRoute(req: Request, res: Response) {
   const { token, newPassword } = req.body || {};
@@ -21,11 +26,13 @@ export async function resetPasswordRoute(req: Request, res: Response) {
   }
 
   try {
+    const hashedToken = hashToken(token);
+
     const user = await prisma.user.findFirst({
       where: {
-        resetToken: token,
+        resetToken: hashedToken,
         resetTokenExpiry: {
-          gte: new Date() 
+          gte: new Date()
         }
       }
     });

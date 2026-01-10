@@ -27,23 +27,29 @@ export async function forgotPasswordRoute(req: Request, res: Response) {
     // Generate a secure random token
     const resetToken = crypto.randomBytes(32).toString("hex");
 
+    // Hash the token for storage
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
     // Token expires in 15 minutes
     const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Save token to database
+    // Save hashed token to database
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        resetToken,
+        resetToken: hashedToken,
         resetTokenExpiry
       }
     });
 
-    // Send email with reset link
+    // Send email with plain token (user never sees the hash)
     const emailOptions = generatePasswordResetEmail(
       email,
       resetToken,
-      "http://localhost:3000"
+      process.env.CORS_ORIGIN || "http://localhost:3000"
     );
     await sendEmail(emailOptions);
 

@@ -38,28 +38,27 @@ export async function updateUserRoute(req: AuthenticatedRequest, res: Response) 
   }
 
    const user = await prisma.user.findUnique({
-     where: { id },
+     where: { id: req.userId },
      select: {
        firstName: true,
-       lastName: true,
+       lastName: true
      }
    });
 
-   if (!user) {
+   if (!user || req.userId !== id) {
      return res.status(404).json({ error: "user not found" });
    }
 
 
   // Helper function to create full name from firstName and lastName
-  function makeFullName(firstName: string, lastNam: string): string {
-    const parts = [
-      firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase(),
-      lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase() 
-    ]
-    
-    return parts.join(' ');
-  }
-
+function makeFullName(firstName: string, lastName: string): string {
+  const parts = [
+    firstName?.charAt(0).toUpperCase() + firstName?.slice(1).toLowerCase() ||
+      "",
+    lastName?.charAt(0).toUpperCase() + lastName?.slice(1).toLowerCase() || ""
+  ];
+  return parts.filter(Boolean).join(" ");
+}
     const name = makeFullName(firstName, lastName);
   const updated = await prisma.user.update({
     where: { id },

@@ -47,10 +47,19 @@ describe("User routes", () => {
   });
 
   it("PATCH /user updates first and last name", async () => {
-    prismaMock.user.update.mockResolvedValue({
+    prismaMock.user.findUnique.mockResolvedValue({
       id: 1,
       email: "test@example.com",
       name: "Test User",
+      firstName: "Test",
+      lastName: "User",
+      createdAt: new Date()
+    } as any);
+
+    prismaMock.user.update.mockResolvedValue({
+      id: 1,
+      email: "test@example.com",
+      name: "NewFirst NewLast",
       firstName: "NewFirst",
       lastName: "NewLast",
       createdAt: new Date()
@@ -61,7 +70,8 @@ describe("User routes", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({
         firstName: "NewFirst",
-        lastName: "NewLast"
+        lastName: "NewLast",
+        id: 1
       });
 
     expect(res.status).toBe(200);
@@ -72,11 +82,41 @@ describe("User routes", () => {
 
     const callArg = prismaMock.user.update.mock.calls[0][0];
 
-    // We only care that data includes the right fields
     expect(callArg.data).toMatchObject({
       firstName: "NewFirst",
       lastName: "NewLast"
     });
+  });
+
+  it("PATCH /user rejects when id does not match userId", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 1,
+      firstName: "Test",
+      lastName: "User"
+    } as any);
+
+    const res = await request(app)
+      .patch("/user")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        firstName: "NewFirst",
+        lastName: "NewLast",
+        id: 999
+      });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe("user not found");
+    expect(prismaMock.user.update).not.toHaveBeenCalled();
+  });
+
+  it("PATCH /user rejects when no fields provided", async () => {
+    const res = await request(app)
+      .patch("/user")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ id: 1 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("no fields to update");
   });
 
   it("POST /user/change-password succeeds for correct current password and strong new password", async () => {
