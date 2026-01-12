@@ -27,6 +27,7 @@ export default function AccountView({
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isNoteOpen, setIsNoteOpen] = useState(false);
 
+
   const notes = account.notes && account.notes.length > 0 ? account.notes : null;
   const description =
     account.description && account.description.length > 0
@@ -39,13 +40,13 @@ export default function AccountView({
       <header className="flex items-center justify-between text-sm">
         <div>
           <p className="flex items-start gap-2">
-           {description && <span>{description}</span>}
+            {description && <span>{description}</span>}
             {notes && (
               <button
                 className="text-gray-500 underline "
                 onClick={() => setIsNoteOpen(true)}
               >
-              notes
+                notes
               </button>
             )}
           </p>{" "}
@@ -92,6 +93,7 @@ export default function AccountView({
           </div>
         </PopupModal>
       )}
+      {/* filtering modal */}
 
       <TransactionsList
         key={refreshKey}

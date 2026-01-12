@@ -9,12 +9,13 @@ import TableInput from "../ui/TableInput";
 import { SPENDING_CATEGORIES, INCOME_CATEGORIES } from "@/lib/categories";
 import CategoryInput from "./CategoryInput";
 import { sortItems } from "@/lib/sort";
+import { SortDirection } from "@/types/api";
 
 /* TYPES: */
 type RowWithState = CsvTransactionRow & { id: number; error?: string | null };
 
  type SortBy = "date" | "amount" | "category" | "description" | "error";
- type SortDirection = "asc" | "desc";
+
  
 export default function ImportTransactions({
   accountId,

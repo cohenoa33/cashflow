@@ -60,5 +60,12 @@ export type Tx = {
 };
 
 
-export type SortBy = "date" | "amount" | "category" | "description" | "error";
 export type SortDirection = "asc" | "desc";
+export type TransactionsFilters = {
+  category: string;
+  description: string;
+  dateFrom: string;
+  dateTo: string;
+  amountMin: string;
+  amountMax: string;
+};
