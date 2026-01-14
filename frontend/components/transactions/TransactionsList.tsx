@@ -287,19 +287,30 @@ export default function TransactionsList({
       </div>
       {/* Filter options */}
       {isFilterOpen && (
-        <FilterTransactions filters={filters} close ={(updated)=>{
-          setFilters(updated);
-          const reset = Object.values(updated).every((v) => v === "");
-          const filtered = reset ? allItems : applyFilters(allItems);
-          const sorted = applySort(filtered);
-          setFilteredItems(sorted);
-          setCurrentPage(1);
-          setIsFilterOpen(false);
-        }} />
+        <FilterTransactions
+          filters={filters}
+          close={(updated) => {
+            setFilters(updated);
+            const reset = Object.values(updated).every((v) => v === "");
+            const filtered = reset ? allItems : applyFilters(allItems);
+            const sorted = applySort(filtered);
+            setFilteredItems(sorted);
+            setCurrentPage(1);
+            setIsFilterOpen(false);
+          }}
+        />
       )}
 
       <div className="overflow-auto rounded-lg border bg-white/60 ">
-        <table className="min-w-full text-sm border border-white">
+          <table className="min-w-full text-sm border border-white table-fixed">
+            <colgroup>
+              <col className="w-[120px]" /> {/* Date */}
+              <col className="w-[120px]" /> {/* Amount */}
+              <col className="w-auto" />{/* Description */}
+              <col className="w-[160px]" /> {/* Category */}
+              <col className="w-[90px]" /> {/* Actions */}
+            </colgroup>
+      
           <thead className="bg-gray-50 text-left">
             <tr className=" text-gray-600">
               <th className="px-3 py-2">
@@ -320,7 +331,7 @@ export default function TransactionsList({
                   Amount
                 </SortButton>
               </th>
-              <th className="px-3 py-2 whitespace-nowrap">
+              <th className="px-3 py-2 whitespace-normal break-words">
                 <SortButton
                   active={sortBy === "description"}
                   dir={sortDirection}
@@ -329,7 +340,7 @@ export default function TransactionsList({
                   Description
                 </SortButton>
               </th>
-              <th className="px-3 py-2 whitespace-nowrap">
+              <th className="px-3 py-2 whitespace-normal break-words">
                 <SortButton
                   active={sortBy === "category"}
                   dir={sortDirection}
@@ -358,7 +369,7 @@ export default function TransactionsList({
                     {formatCurrency(Number(t.amount ?? 0), currency)}
                   </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-normal break-words">
                     {t.description || "-"}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">

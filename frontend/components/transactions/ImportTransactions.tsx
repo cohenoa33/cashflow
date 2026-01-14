@@ -1,22 +1,29 @@
 "use client";
 
-import { useState, DragEvent } from "react";
-import { parseTransactionsCsv, CsvTransactionRow } from "@/lib/csv";
+import { useState, DragEvent, SyntheticEvent } from "react";
+import {
+  parseTransactionsCsv,
+  CsvTransactionRow,
+  getFileHeader
+} from "@/lib/csv";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
-import Button, { SortButton } from "@/components/ui/Button";
-import TableInput from "../ui/TableInput";
-import { SPENDING_CATEGORIES, INCOME_CATEGORIES } from "@/lib/categories";
-import CategoryInput from "./CategoryInput";
+import {
+  SPENDING_CATEGORIES,
+  INCOME_CATEGORIES,
+  suggestCategoryFromRules
+} from "@/lib/categories";
 import { sortItems } from "@/lib/sort";
-import { SortDirection } from "@/types/api";
+import {
+  RowWithState,
+  SortByWithError,
+  SortDirection,
+  SortByNoError
+} from "@/types/api";
+import DragDropComponent from "./DragDrop";
+import EditImportTransactions from "./EditImportTransactions";
+import Button from "../ui/Button";
 
-/* TYPES: */
-type RowWithState = CsvTransactionRow & { id: number; error?: string | null };
-
- type SortBy = "date" | "amount" | "category" | "description" | "error";
-
- 
 export default function ImportTransactions({
   accountId,
   onComplete
@@ -24,6 +31,7 @@ export default function ImportTransactions({
   accountId: number;
   onComplete: () => void;
 }) {
+  const [file, setFile] = useState<File | null>(null);
   const [rows, setRows] = useState<RowWithState[]>([]);
 
   const [categories, setCategories] = useState<Set<string>>(
@@ -32,8 +40,31 @@ export default function ImportTransactions({
   const [err, setErr] = useState<string | null>(null);
   const [errors, setErrors] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
-  const [sortBy, setSortBy] = useState<SortBy>("date");
+  const [sortBy, setSortBy] = useState<SortByWithError>("date");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [headerMap, setHeaderMap] = useState<
+    Map<string, (string | number)[]>
+  >(new Map());
+  const [headerFromFileMap, setHeaderFromFileMap] = useState<
+    Map<SortByNoError, (string | number)[]>
+  >(new Map());
+  const [headerSet, setHeaderSet] = useState(false);
+  const [hasHeader, setHasHeader] = useState(false);
+
+
+function startOver() {  setFile(null);
+    setRows([]);
+    setErr(null);
+    setErrors(new Set());
+    setBusy(false);
+    setSortBy("date");
+    setSortDirection("asc");
+    setHeaderMap(new Map());
+    setHeaderFromFileMap(new Map());
+    setHeaderSet(false);
+    setHasHeader(false);
+  }
+
 
   function addCategoryToSuggestions(value: string) {
     const trimmed = value.trim();
@@ -78,7 +109,30 @@ export default function ImportTransactions({
     setRows(updatedRows);
     setErrors(updatedErrors);
   }
+  function validateAndMapHeaders(
+    headerMap: Map<string, (string | number)[]>
+  ) {
+    const expectedColumns = ["date", "amount", "description", "category"];
+    const mappedHeaders = new Map<SortByNoError, (string | number)[]>();
 
+    for (const expected of expectedColumns) {
+      for (const [key] of headerMap.entries()) {
+        if (key.toLowerCase().includes(expected.toLowerCase())) {
+          mappedHeaders.set(expected as SortByNoError, headerMap.get(key)!);
+          break;
+        }
+      }
+    }
+    if (mappedHeaders.size !== expectedColumns.length) {
+      expectedColumns.forEach((col) => {
+        if (!mappedHeaders.has(col as SortByNoError)) {
+          mappedHeaders.set(col as SortByNoError, [-1, ""]);
+        }
+      });
+    }
+
+    setHeaderFromFileMap(mappedHeaders);
+  }
   async function suggestCategories(
     current: RowWithState[],
     errors: Set<number>
@@ -119,8 +173,16 @@ export default function ImportTransactions({
       const updatedRows = current.map((r) => {
         if (r.category?.trim()) return r;
         const key = r.description.trim().toLowerCase();
-        const suggested = map[key];
-        if (!suggested) return r;
+        let suggested = map[key];
+        if (!suggested ) {
+
+
+          const suggestedFromRules = suggestCategoryFromRules(key);
+  
+          if(!suggestedFromRules){ return r; }
+          suggested = suggestedFromRules;
+        }
+    
         updatedErrors.delete(r.id);
         return {
           ...r,
@@ -169,12 +231,13 @@ export default function ImportTransactions({
     }
     return null;
   }
-  async function handleFile(file: File) {
+  async function handleFile() {
+
+    if(!file) return;
     try {
       setErr(null);
       const errors = new Set<number>();
-      const parsed = await parseTransactionsCsv(file);
-
+      const parsed = await parseTransactionsCsv(file, headerFromFileMap, hasHeader);
       const withState: RowWithState[] = parsed.map((r) => {
         const error = rowError(r);
         if (error) {
@@ -204,15 +267,30 @@ export default function ImportTransactions({
       }
 
       await suggestCategories(withState, errors);
+      setHeaderSet(false)
     } catch (e) {
       setErr(handleError(e, 4));
+    }
+  }
+  async function mapHeaderRow(file: File) {
+    try {
+      setErr(null);
+      const mappedHeader = await getFileHeader(file);
+      setHeaderMap(mappedHeader);
+
+      validateAndMapHeaders(mappedHeader);
+      setHeaderSet(true);
+      setFile(file)
+    } catch (e) {
+      setErr(handleError(e, 4));
+      setHeaderSet(false);
     }
   }
 
   function onDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
-    if (file) void handleFile(file);
+    if (file) void mapHeaderRow(file);
   }
 
   function onDragOver(e: DragEvent<HTMLDivElement>) {
@@ -221,7 +299,7 @@ export default function ImportTransactions({
 
   function onFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) void handleFile(file);
+    if (file) void mapHeaderRow(file);
   }
 
   function handleDivClick() {
@@ -299,7 +377,7 @@ export default function ImportTransactions({
     }
   }
 
-  function handleSort(column: SortBy) {
+  function handleSort(column: SortByWithError) {
     if (sortBy === column) {
       // Flip direction if already sorting by this column
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -343,7 +421,6 @@ export default function ImportTransactions({
     setRows(sorted);
   }
 
-
   return (
     <section className="space-y-4">
       <p className="text-sm font-bold">
@@ -351,175 +428,189 @@ export default function ImportTransactions({
         review and edit rows before saving.
       </p>
       <form onSubmit={onSubmit} className="space-y-4 ">
-        {!rows.length ? (
-          <div
+        {!file ? (
+          <DragDropComponent
             onDrop={onDrop}
             onDragOver={onDragOver}
-            onClick={handleDivClick}
-            className="rounded-lg border border-dashed p-8 text-center cursor-pointer"
-          >
-            {/* Upload section */}
-            <p className="text-md font-bold text-white">
-              Drag & drop a CSV file or click below
-            </p>
-            <input
-              type="file"
-              accept=".csv"
-              className="mt-3 hidden"
-              onChange={onFileInputChange}
-            />
-          </div>
+            handleDivClick={handleDivClick}
+            onFileInputChange={onFileInputChange}
+          />
         ) : (
           <div className="space-y-2 flex flex-col h-[calc(100vh-200px)]">
             {err && <p className="text-sm font-medium text-red-600">{err}</p>}
             {/* Table section */}
-            <div className="flex flex-col flex-1 overflow-hidden">
-              <div className="flex text-sm font-medium ">
-                <p>Parsed rows: {rows.length}</p>
-                <div className="flex-grow" />
-                <button
-                  type="button"
-                  onClick={() => setRows([])}
-                  className={"hover:underline"}
-                >
-                  Start Over
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-auto rounded text-xs mt-4">
-                <table className="min-w-full border-collapse">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
-                        <SortButton
-                          active={sortBy === "date"}
-                          dir={sortDirection}
-                          onClick={() => handleSort("date")}
-                        >
-                          Date
-                        </SortButton>
-                      </th>
-                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
-                        <SortButton
-                          active={sortBy === "amount"}
-                          dir={sortDirection}
-                          onClick={() => handleSort("amount")}
-                        >
-                          Amount
-                        </SortButton>
-                      </th>
-                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
-                        <SortButton
-                          active={sortBy === "description"}
-                          dir={sortDirection}
-                          onClick={() => handleSort("description")}
-                        >
-                          Description
-                        </SortButton>
-                      </th>
-                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
-                        <SortButton
-                          active={sortBy === "category"}
-                          dir={sortDirection}
-                          onClick={() => handleSort("category")}
-                        >
-                          Category
-                        </SortButton>
-                      </th>
-                      <th className="border px-2 py-1 text-left cursor-pointer hover:bg-gray-100">
-                        <SortButton
-                          active={sortBy === "error"}
-                          dir={sortDirection}
-                          onClick={() => handleSort("error")}
-                        >
-                          Error
-                        </SortButton>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((r) => (
-                      <tr
-                        key={`row-${r.id}`}
-                        className={r.error ? "bg-gray-50/50" : "bg-gray-50/75"}
+            {headerSet ? (
+              <>
+                <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="hasHeader"
+                        checked={hasHeader}
+                        onChange={(e) => setHasHeader(e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                      <label
+                        htmlFor="hasHeader"
+                        className="ml-2 text-sm font-medium"
                       >
-                        <td className="border px-2 py-1">
-                          <TableInput
-                            type="date"
-                            value={r.date}
-                            onChange={(v) => updateRow(r.id, { date: v })}
-                          />
-                        </td>
+                        My file has header
+                      </label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Date Column
+                        </label>
+                        <select
+                          onClick={(e: SyntheticEvent) => {
+                            setHeaderFromFileMap((prev) => {
+                              const next = new Map(prev);
+                              next.set("date", [
+                                (e.target as HTMLSelectElement).value,
+                                ""
+                              ]);
+                              return next;
+                            });
+                          }}
+                          defaultValue={headerFromFileMap.get("date")?.[0] ?? 0}
+                          className="w-full px-3 py-2 border rounded-md"
+                        >
+                          {Array.from(headerMap.entries()).map(
+                            ([key, value]) => (
+                              <option key={key} value={value[0]}>
+                                {hasHeader ? key : `${value[1]}`}
+                              </option>
+                            )
+                          )}
+                        </select>
+                      </div>
 
-                        <td className="border px-2 py-1">
-                          <TableInput
-                            type="number"
-                            value={r.amount}
-                            onChange={(v) =>
-                              updateRow(r.id, { amount: Number(v) })
-                            }
-                          />
-                        </td>
-                        <td className="border px-2 py-1">
-                          <TableInput
-                            value={r.description}
-                            onChange={(v) =>
-                              updateRow(r.id, { description: v })
-                            }
-                          />
-                        </td>
-
-                        <td className="border px-2 py-1">
-                          <CategoryInput
-                            value={r.category || ""}
-                            onChange={(v) => handleCategoryChange(r.id, v)}
-                            onPick={(v) => {
-                              applyCategoryToValue(r.description, v);
-                              addCategoryToSuggestions(v);
-                            }}
-                            options={[...categories]}
-                          />
-                        </td>
-
-                        <td className="border px-2 py-1 text-right">
-                          <div
-                            className={
-                              r.error
-                                ? "flex items-center justify-between gap-2"
-                                : "flex justify-end"
-                            }
-                          >
-                            {r.error && (
-                              <div className="text-red-600 text-[10px]">
-                                {r.error}
-                              </div>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() => deleteRow(r.id)}
-                              className="text-red-600 underline text-xs whitespace-nowrap"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            {/* Submit */}
-            <div className="flex justify-center m-4">
-              <Button
-                disabled={busy || rows.length === 0 || errors.size > 0}
-                className="w-1/2 min-w-[200px]"
-                type="submit"
-              >
-                {busy ? "Importing…" : "Import Transactions"}
-              </Button>
-            </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Amount Column
+                        </label>
+                        <select
+                          onClick={(e: SyntheticEvent) => {
+                            setHeaderFromFileMap((prev) => {
+                              const next = new Map(prev);
+                              next.set("amount", [
+                                (e.target as HTMLSelectElement).value,
+                                ""
+                              ]);
+                              return next;
+                            });
+                          }}
+                          defaultValue={
+                            headerFromFileMap.get("amount")?.[0] ?? 1
+                          }
+                          className="w-full px-3 py-2 border rounded-md"
+                        >
+                          {Array.from(headerMap.entries()).map(
+                            ([key, value]) => (
+                              <option key={key} value={value[0]}>
+                                {hasHeader ? key : `${value[1]}`}
+                              </option>
+                            )
+                          )}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Description Column
+                        </label>
+                        <select
+                          defaultValue={
+                            headerFromFileMap.get("description")?.[0] ?? -1
+                          }
+                          className="w-full px-3 py-2 border rounded-md"
+                          onClick={(e: SyntheticEvent) => {
+                            setHeaderFromFileMap((prev) => {
+                              const next = new Map(prev);
+                              next.set("description", [
+                                (e.target as HTMLSelectElement).value,
+                                ""
+                              ]);
+                              return next;
+                            });
+                          }}
+                        >
+                          {Array.from(headerMap.entries()).map(
+                            ([key, value]) => (
+                              <option key={key} value={value[0]}>
+                                {hasHeader ? key : `${value[1]}`}
+                              </option>
+                            )
+                          )}
+                          <option value={-1}>N/A</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Category Column
+                        </label>
+                        <select
+                          defaultValue={
+                            headerFromFileMap.get("category")?.[0] ?? -1
+                          }
+                          className="w-full px-3 py-2 border rounded-md"
+                          onClick={(e: SyntheticEvent) => {
+                            setHeaderFromFileMap((prev) => {
+                              const next = new Map(prev);
+                              next.set("category", [
+                                (e.target as HTMLSelectElement).value,
+                                ""
+                              ]);
+                              return next;
+                            });
+                          }}
+                        >
+                          {Array.from(headerMap.entries()).map(
+                            ([key, value]) => (
+                              <option key={key} value={value[0]}>
+                                {hasHeader ? key : `${value[1]}`}
+                              </option>
+                            )
+                          )}{" "}
+                          <option value={-1}>N/A</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex flex-col justify-end">
+                      <Button
+                        onClick={
+                          () => {
+                          console.log("Continue to import rows", headerFromFileMap)
+                          handleFile()}
+                        }
+                        className="px-3"
+                      >
+                        Continue
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <EditImportTransactions
+                rows={rows}
+                startOver={startOver}
+                sortBy={sortBy}
+                sortDirection={sortDirection}
+                handleSort={handleSort}
+                updateRow={updateRow}
+                handleCategoryChange={handleCategoryChange}
+                applyCategoryToValue={applyCategoryToValue}
+                deleteRow={deleteRow}
+                categories={categories}
+                addCategoryToSuggestions={addCategoryToSuggestions}
+                busy={busy}
+                errors={errors.size > 0}
+              />
+            )}
           </div>
         )}
       </form>

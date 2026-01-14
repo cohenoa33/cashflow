@@ -232,10 +232,10 @@ export default function EditTransactionForm({
         <div className="gap-4 md:flex-row md:items-center md:justify-between">
           <div className="md:w-2/3">
             <h2 className="text-base font-semibold text-danger">
-              Delete account
+              Delete transaction
             </h2>
             <p className="mt-1 text-sm text-danger">
-              Delete this account. Once you delete an account, there is no going
+              Delete this transaction. Once you delete an transaction, there is no going
               back. Please be certain.
             </p>
           </div>
@@ -247,7 +247,7 @@ export default function EditTransactionForm({
               className="w-1/2 min-w-[200px]"
               variant="danger"
             >
-              I want to delete this account{" "}
+              I want to delete this transaction{" "}
             </Button>
           </div>
         </div>
