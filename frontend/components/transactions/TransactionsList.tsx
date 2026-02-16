@@ -13,8 +13,8 @@ import PopupModal from "../ui/Modal";
 import EditTransactionForm from "./EditTransactionForm";
 import FilterTransactions from "./FilterTransactions";
 import { SortDirection } from "@/types/api";
-/* TYPES: */
 
+/* TYPES: */
 type Props = {
   accountId: number;
   currency: string;
@@ -304,11 +304,11 @@ export default function TransactionsList({
       <div className="overflow-auto rounded-lg border bg-white/60 ">
           <table className="min-w-full text-sm border border-white table-fixed">
             <colgroup>
-              <col className="w-[120px]" /> {/* Date */}
-              <col className="w-[120px]" /> {/* Amount */}
-              <col className="w-auto" />{/* Description */}
-              <col className="w-[160px]" /> {/* Category */}
-              <col className="w-[90px]" /> {/* Actions */}
+              <col className="w-[120px]" /> 
+              <col className="w-[120px]" /> 
+              <col className="w-auto" />
+              <col className="w-[160px]" /> 
+              <col className="w-[90px]" />
             </colgroup>
       
           <thead className="bg-gray-50 text-left">
@@ -349,7 +349,7 @@ export default function TransactionsList({
                   Category
                 </SortButton>
               </th>
-              <th className="px-3 py-2 whitespace-nowrap">...</th>
+              <th className="px-3 py-2 whitespace-nowrap"></th>
             </tr>
           </thead>
 

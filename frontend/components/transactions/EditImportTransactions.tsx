@@ -48,11 +48,11 @@ export default function EditImportTransactions({
         <div className="flex-1 overflow-auto rounded text-xs mt-4">
           <table className="min-w-full border-collapse table-fixed">
             <colgroup>
-              <col className="w-[130px]" /> {/* Date */}
-              <col className="w-[120px]" /> {/* Amount */}
-              <col className="w-[350px]" /> {/* Description */}
-              <col className="w-[220px]" /> {/* Category */}
-              <col className="w-[120px]" /> {/* Error + Delete */}
+              <col className="w-[130px]" />
+              <col className="w-[120px]" /> 
+              <col className="w-[350px]" />
+              <col className="w-[220px]" /> 
+              <col className="w-[120px]" />
             </colgroup>
 
             <thead className="bg-gray-50">
