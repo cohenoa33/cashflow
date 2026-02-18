@@ -17,4 +17,5 @@ export type TransactionsFilters = {
   dateTo: string;
   amountMin: string;
   amountMax: string;
+  
 };

@@ -51,7 +51,7 @@ export default function AccountsOverviewTable({
 
   return (
     <>
-      <section className="rounded-xl border  p-4">
+      <section >
         <div className="mb-3">
           <h2 className="text-lg font-semibold">Accounts overview</h2>{" "}
           <div className="text-gray-600 flex justify-between mt-2 align-middle">

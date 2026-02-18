@@ -23,7 +23,7 @@ const [amountMax, setAmountMax] = useState(filters.amountMax);
 
   
   return (
-    <div className="gap-4 rounded-lg border bg-white/70 p-4 text-sm">
+    <div className="gap-4 rounded-lg border bg-white/70 p-4 text-sm mb-3">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -37,7 +37,7 @@ const [amountMax, setAmountMax] = useState(filters.amountMax);
           });
         }}
       >
-        <div>Search by any of these transaction details.</div>
+        <div className="font-bold ">Search by any of these transaction details.</div>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-gray-600">Category</label>

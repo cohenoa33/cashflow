@@ -24,9 +24,6 @@ type Props = {
 
 type SortBy = "date" | "amount" | "category" | "description";
 
-
-
-
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50] as const;
 
 export default function TransactionsList({
@@ -35,6 +32,7 @@ export default function TransactionsList({
   onRefresh,
   setIsAddOpen
 }: Props) {
+
   const [tx, setTx] = useState<Tx | null>(null);
   const [allItems, setAllItems] = useState<Tx[]>([]);
   const [filteredItems, setFilteredItems] = useState<Tx[]>([]);
@@ -47,19 +45,43 @@ export default function TransactionsList({
 
   const router = useRouter();
 
-  const [sortBy, setSortBy] = useState<SortBy>("date");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-
   const [filters, setFilters] = useState<TransactionsFilters>({
     category: "",
     description: "",
     dateFrom: "",
     dateTo: "",
     amountMin: "",
-    amountMax: ""
+    amountMax: "",
+    
   });
 
+  const [sortBy, setSortBy] = useState<SortBy>(getSortFromStorage());
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    getDirectionFromStorage()
+  );
+  const [includeFuture, setIncludeFuture] = useState<boolean>(
+    () => JSON.parse(localStorage.getItem("transactionsIncludeFuture") || "true")
+  );
 
+  function getSortFromStorage(): SortBy {
+    return (localStorage.getItem("transactionsSortBy") as SortBy) || "date";
+  }
+  function getDirectionFromStorage(): SortDirection {
+    return (
+      (localStorage.getItem("transactionsSortDirection") as SortDirection) ||
+      "desc"
+    );
+  }
+
+  useEffect(() => {
+    localStorage.setItem("transactionsSortBy", sortBy);
+  }, [sortBy]);
+  useEffect(() => {
+    localStorage.setItem("transactionsSortDirection", sortDirection);
+  }, [sortDirection]);
+  useEffect(() => {
+    localStorage.setItem("transactionsIncludeFuture", JSON.stringify(includeFuture));
+  }, [includeFuture]);
 
   const totalPages =
     filteredItems.length === 0
@@ -73,7 +95,6 @@ export default function TransactionsList({
       setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortBy(next);
-      setSortDirection(next === "date" ? "asc" : "desc");
     }
   }
 
@@ -82,7 +103,11 @@ export default function TransactionsList({
       const fromTs = filters.dateFrom
         ? new Date(filters.dateFrom).getTime()
         : null;
-      const toTs = filters.dateTo ? new Date(filters.dateTo).getTime() : null;
+      const toTs = filters.dateTo
+        ? new Date(filters.dateTo).getTime()
+        : !includeFuture
+        ? new Date(getTodayDateString(new Date())).getTime()
+        : null;
       const minAmount =
         filters.amountMin.trim() === "" ? null : Number(filters.amountMin);
       const maxAmount =
@@ -115,13 +140,13 @@ export default function TransactionsList({
 
         if (minAmount !== null && !Number.isNaN(amount) && amount < minAmount)
           return false;
-        if (maxAmount !== null && !Number.isNaN(amount) && amount > maxAmount){
+        if (maxAmount !== null && !Number.isNaN(amount) && amount > maxAmount) {
           return false;
-}
+        }
         return true;
       });
     },
-    [filters]
+    [filters, includeFuture]
   );
 
   const applySort = useCallback(
@@ -170,7 +195,7 @@ export default function TransactionsList({
         const res = await api<Tx[]>(`/transactions/by-account/${accountId}`);
         setAllItems(res);
         setFilteredItems(res);
-      setCurrentPage(1);
+        setCurrentPage(1);
       } catch (e) {
         setErr(handleError(e, 5));
       } finally {
@@ -218,7 +243,7 @@ export default function TransactionsList({
 
   if (allItems.length === 0)
     return (
-      <section className="space-y-2 rounded-xl border p-4">
+      <section>
         <h2 className="text-lg font-semibold"></h2>
         <div className="flex justify-end gap-4 text-sm pb-4">
           <button
@@ -244,7 +269,7 @@ export default function TransactionsList({
     );
 
   return (
-    <section className="space-y-2 rounded-xl border p-4">
+    <section>
       {isEditOpen && tx && (
         <PopupModal label="Edit transaction" close={() => setIsEditOpen(false)}>
           <EditTransactionForm
@@ -284,36 +309,50 @@ export default function TransactionsList({
         >
           Filter transactions
         </button>
+        <span className="text-gray-400">|</span>
+        <label className="flex items-center gap-2 text-gray-500 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={includeFuture}
+            onChange={(e) =>
+              setIncludeFuture(e.target.checked)
+            }
+            className="rounded"
+          />
+          Include future transactions
+        </label>
       </div>
       {/* Filter options */}
       {isFilterOpen && (
-        <FilterTransactions
-          filters={filters}
-          close={(updated) => {
-            setFilters(updated);
-            const reset = Object.values(updated).every((v) => v === "");
-            const filtered = reset ? allItems : applyFilters(allItems);
-            const sorted = applySort(filtered);
-            setFilteredItems(sorted);
-            setCurrentPage(1);
-            setIsFilterOpen(false);
-          }}
-        />
+        <PopupModal label="Filter transactions" close={() => setIsFilterOpen(false)}>
+          <FilterTransactions
+            filters={filters}
+            close={(updated) => {
+              setFilters(updated);
+              const reset = Object.values(updated).every((v) => v === "");
+              const filtered = reset ? allItems : applyFilters(allItems);
+              const sorted = applySort(filtered);
+              setFilteredItems(sorted);
+              setCurrentPage(1);
+              setIsFilterOpen(false);
+            }}
+          />
+        </PopupModal>
       )}
 
-      <div className="overflow-auto rounded-lg border bg-white/60 ">
-          <table className="min-w-full text-sm border border-white table-fixed">
-            <colgroup>
-              <col className="w-[120px]" /> 
-              <col className="w-[120px]" /> 
-              <col className="w-auto" />
-              <col className="w-[160px]" /> 
-              <col className="w-[90px]" />
-            </colgroup>
-      
+      <div className="overflow-auto rounded-lg border bg-white/60 w-[850px]">
+        <table className="w-[850px] text-sm border border-white table-fixed">
+          <colgroup>
+            <col className="w-[120px]" />
+            <col className="w-[120px]" />
+            <col className="w-[325px]" />
+            <col className="w-[160px]" />
+            <col className="w-[90px]" />
+          </colgroup>
+
           <thead className="bg-gray-50 text-left">
             <tr className=" text-gray-600">
-              <th className="px-3 py-2">
+              <th className="px-3 py-2 w-[120px]">
                 <SortButton
                   active={sortBy === "date"}
                   dir={sortDirection}
@@ -322,7 +361,7 @@ export default function TransactionsList({
                   Date
                 </SortButton>
               </th>
-              <th className="px-3 py-2 whitespace-nowrap">
+              <th className="px-3 py-2 whitespace-nowrap w-[120px]">
                 <SortButton
                   active={sortBy === "amount"}
                   dir={sortDirection}
@@ -331,7 +370,7 @@ export default function TransactionsList({
                   Amount
                 </SortButton>
               </th>
-              <th className="px-3 py-2 whitespace-normal break-words">
+              <th className="px-3 py-2 whitespace-normal break-words w-[325px]">
                 <SortButton
                   active={sortBy === "description"}
                   dir={sortDirection}
@@ -340,7 +379,7 @@ export default function TransactionsList({
                   Description
                 </SortButton>
               </th>
-              <th className="px-3 py-2 whitespace-normal break-words">
+              <th className="px-3 py-2 whitespace-normal break-words w-[160px]">
                 <SortButton
                   active={sortBy === "category"}
                   dir={sortDirection}
@@ -349,7 +388,7 @@ export default function TransactionsList({
                   Category
                 </SortButton>
               </th>
-              <th className="px-3 py-2 whitespace-nowrap"></th>
+              <th className="px-3 py-2 whitespace-nowrap w-[90px]"></th>
             </tr>
           </thead>
 
@@ -358,25 +397,25 @@ export default function TransactionsList({
               return (
                 <tr
                   key={t.id}
-                  className="hover:bg-gray-50/60 align-top h-[50px]"
+                  className="hover:bg-gray-50/60 align-top"
                   style={{ cursor: "pointer" }}
                 >
-                  <td className="px-3 py-2 max-w-[250px]">
+                  <td className="px-3 py-2 w-[120px]">
                     {getTodayDateString(t.date)}
                   </td>
 
-                  <td className="px-3 py-2 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-nowrap w-[120px]">
                     {formatCurrency(Number(t.amount ?? 0), currency)}
                   </td>
 
-                  <td className="px-3 py-2 whitespace-normal break-words">
+                  <td className="px-3 py-2 whitespace-normal break-words w-[325px]">
                     {t.description || "-"}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-normal break-words w-[160px]">
                     {t.category || "-"}
                   </td>
 
-                  <td>
+                  <td className="px-3 py-2 w-[90px]">
                     <Button
                       className="px-1.5"
                       onClick={() => {

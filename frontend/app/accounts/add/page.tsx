@@ -77,7 +77,17 @@ export default function AddAccountPage() {
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-semibold">Add Account</h1>
+      <header className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Add Account</h1>
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={() => router.push("/accounts")}
+          className="rounded-md p-1 text-gray-500 hover:text-gray-800"
+        >
+          ✕
+        </button>
+      </header>
       <form onSubmit={onSubmit} className="space-y-3 rounded-xl p-4">
         <div>
           <label className="text-sm">Name</label>
@@ -184,12 +194,11 @@ export default function AddAccountPage() {
         </div>
 
         {err && <p className="text-sm text-red-600">{err}</p>}
-  <div className="flex justify-center m-4">
-
-        <Button disabled={busy} type="submit" className="w-1/2 min-w-[200px]">
-          {busy ? "Saving…" : "Save"}
-        </Button>
-  </div>
+        <div className="flex justify-center m-4">
+          <Button disabled={busy} type="submit" className="w-1/2 min-w-[200px]">
+            {busy ? "Saving…" : "Save"}
+          </Button>
+        </div>
       </form>
     </AppShell>
   );

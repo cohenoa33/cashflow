@@ -80,22 +80,30 @@ export default function AccountImportTransactionsPage() {
   }
 
   return (
-        <AppShell >
-        {/* Header + top-level mode switch (View / Edit) */}
-        <header className="flex items-center justify-between">
-          <h1
-            className="text-2xl font-semibold"
-            onClick={() => router.push(`/accounts/${slug}`)}
-          >
-            {account.name}
-          </h1>
-        </header>
-        <ImportTransactions
-          accountId={account.id}
-          onComplete={() => {
-            router.push(`/accounts/${slug}`);
-          }}
-        />
-      </AppShell>
+    <AppShell>
+      {/* Header + top-level mode switch (View / Edit) */}
+      <header className="flex items-center justify-between">
+        <h1
+          className="text-2xl font-semibold"
+          onClick={() => router.push(`/accounts/${slug}`)}
+        >
+          {account.name}
+        </h1>
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={() => router.push(`/accounts/${slug}`)}
+          className="rounded-md p-1 text-gray-500 hover:text-gray-800"
+        >
+          ✕
+        </button>
+      </header>
+      <ImportTransactions
+        accountId={account.id}
+        onComplete={() => {
+          router.push(`/accounts/${slug}`);
+        }}
+      />
+    </AppShell>
   );
 }
