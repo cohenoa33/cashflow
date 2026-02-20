@@ -32,7 +32,6 @@ export default function TransactionsList({
   onRefresh,
   setIsAddOpen
 }: Props) {
-
   const [tx, setTx] = useState<Tx | null>(null);
   const [allItems, setAllItems] = useState<Tx[]>([]);
   const [filteredItems, setFilteredItems] = useState<Tx[]>([]);
@@ -51,16 +50,15 @@ export default function TransactionsList({
     dateFrom: "",
     dateTo: "",
     amountMin: "",
-    amountMax: "",
-    
+    amountMax: ""
   });
 
   const [sortBy, setSortBy] = useState<SortBy>(getSortFromStorage());
   const [sortDirection, setSortDirection] = useState<SortDirection>(
     getDirectionFromStorage()
   );
-  const [includeFuture, setIncludeFuture] = useState<boolean>(
-    () => JSON.parse(localStorage.getItem("transactionsIncludeFuture") || "true")
+  const [includeFuture, setIncludeFuture] = useState<boolean>(() =>
+    JSON.parse(localStorage.getItem("transactionsIncludeFuture") || "true")
   );
 
   function getSortFromStorage(): SortBy {
@@ -80,7 +78,10 @@ export default function TransactionsList({
     localStorage.setItem("transactionsSortDirection", sortDirection);
   }, [sortDirection]);
   useEffect(() => {
-    localStorage.setItem("transactionsIncludeFuture", JSON.stringify(includeFuture));
+    localStorage.setItem(
+      "transactionsIncludeFuture",
+      JSON.stringify(includeFuture)
+    );
   }, [includeFuture]);
 
   const totalPages =
@@ -106,8 +107,8 @@ export default function TransactionsList({
       const toTs = filters.dateTo
         ? new Date(filters.dateTo).getTime()
         : !includeFuture
-        ? new Date(getTodayDateString(new Date())).getTime()
-        : null;
+          ? new Date(getTodayDateString(new Date())).getTime()
+          : null;
       const minAmount =
         filters.amountMin.trim() === "" ? null : Number(filters.amountMin);
       const maxAmount =
@@ -314,17 +315,18 @@ export default function TransactionsList({
           <input
             type="checkbox"
             checked={includeFuture}
-            onChange={(e) =>
-              setIncludeFuture(e.target.checked)
-            }
-            className="rounded"
+            onChange={(e) => setIncludeFuture(e.target.checked)}
+            className="rounded accent-black"
           />
           Include future transactions
         </label>
       </div>
       {/* Filter options */}
       {isFilterOpen && (
-        <PopupModal label="Filter transactions" close={() => setIsFilterOpen(false)}>
+        <PopupModal
+          label="Filter transactions"
+          close={() => setIsFilterOpen(false)}
+        >
           <FilterTransactions
             filters={filters}
             close={(updated) => {
@@ -341,6 +343,7 @@ export default function TransactionsList({
       )}
 
       <div className="overflow-auto rounded-lg border bg-white/60 w-[850px]">
+      
         <table className="w-[850px] text-sm border border-white table-fixed">
           <colgroup>
             <col className="w-[120px]" />
