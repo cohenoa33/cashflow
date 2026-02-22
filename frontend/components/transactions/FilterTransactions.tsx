@@ -27,8 +27,6 @@ export default function FilterTransactions({ filters, close }: Props) {
     // Check if dates are valid
     const fromTime = new Date(dateFrom).getTime();
     const toTime = new Date(dateTo).getTime();
-    
-    console.log("Validating dates:", { dateFrom, dateTo, fromTime, toTime });
     if (dateFrom && isNaN(fromTime) || dateTo && isNaN(toTime)) {
       setDateError("Invalid date format");
       return false;
