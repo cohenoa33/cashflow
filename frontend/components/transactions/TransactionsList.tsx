@@ -41,6 +41,7 @@ export default function TransactionsList({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterOn, setFilterOn] = useState(false);
 
   const router = useRouter();
 
@@ -69,6 +70,14 @@ export default function TransactionsList({
       (localStorage.getItem("transactionsSortDirection") as SortDirection) ||
       "desc"
     );
+  }
+  function keyDictionary(key:string) {
+  
+   if (key === "dateFrom") return "Date from";
+   if (key === "dateTo") return "Date to";
+   if (key === "amountMin") return "Min amount";
+   if (key === "amountMax") return "Max amount";
+   return key.charAt(0).toUpperCase() + key.slice(1);
   }
 
   useEffect(() => {
@@ -302,31 +311,47 @@ export default function TransactionsList({
         >
           Import transactions
         </button>
-        <span className="text-gray-400">|</span>
-        <button
-          type="button"
-          className={"text-gray-500 hover:underline"}
-          onClick={() => setIsFilterOpen(!isFilterOpen)}
-        >
-          Filter transactions
-        </button>
-        <span className="text-gray-400">|</span>
-        <label className="flex items-center gap-2 text-gray-500 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={includeFuture}
-            onChange={(e) => setIncludeFuture(e.target.checked)}
-            className="rounded accent-black"
-          />
-          Include future transactions
-        </label>
+   
       </div>
-      {/* Filter options */}
-      {isFilterOpen && (
-        <PopupModal
-          label="Filter transactions"
-          close={() => setIsFilterOpen(false)}
-        >
+
+      <div className="overflow-auto rounded-lg border bg-white/60 w-[850px]">
+        {/* table upper section for showing transactions */}
+        <div className="flex items-center  justify-between gap-6 px-3 py-2 text-sm text-gray-600 font-bold">
+          <div>
+            Showing:
+            <select
+              value={includeFuture ? "all" : "past"}
+              onChange={(e) => setIncludeFuture(e.target.value === "all")}
+              className="ml-2 px-2 py-1 border rounded text-sm outline-none"
+            >
+              <option value="past">Only show occurred transactions</option>
+              <option value="all">All transactions including upcoming</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="text-gray-500 hover:text-gray-700"
+              title="Search filters"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        {isFilterOpen && (
           <FilterTransactions
             filters={filters}
             close={(updated) => {
@@ -337,13 +362,45 @@ export default function TransactionsList({
               setFilteredItems(sorted);
               setCurrentPage(1);
               setIsFilterOpen(false);
+              setFilterOn(!reset);
             }}
           />
-        </PopupModal>
-      )}
-
-      <div className="overflow-auto rounded-lg border bg-white/60 w-[850px]">
-      
+        )}
+        {filterOn && (
+          <div className="px-3 py-2 text-sm flex flex-wrap gap-2">
+            {Object.entries(filters).map(([key, value]) =>
+              value !== "" ? (
+                <div
+                  key={key}
+                  className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-xs font-medium"
+                >
+                  <span>{`${keyDictionary(key)}: ${value}`}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...filters, [key]: "" };
+                      setFilters(updated);
+                      const reset = Object.values(updated).every(
+                        (v) => v === ""
+                      );
+                      const filtered = reset
+                        ? allItems
+                        : applyFilters(allItems);
+                      const sorted = applySort(filtered);
+                      setFilteredItems(sorted);
+                      setCurrentPage(1);
+                      setFilterOn(!reset);
+                    }}
+                    className="hover:text-blue-900 font-bold"
+                    title={`Remove ${key} filter`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : null
+            )}
+          </div>
+        )}
         <table className="w-[850px] text-sm border border-white table-fixed">
           <colgroup>
             <col className="w-[120px]" />
