@@ -15,15 +15,16 @@ prismaMock.$transaction.mockResolvedValue([
   { _sum: { amount: 75 } } // all transactions sum
 ]);
 describe("Accounts routes with balance summary", () => {
-prismaMock.$transaction.mockResolvedValue([
-  { _sum: { amount: 50 } }, // past transactions sum
-  { _sum: { amount: 75 } } // all transactions sum
-]);
+  prismaMock.$transaction.mockResolvedValue([
+    { _sum: { amount: 50 } }, // past transactions sum
+    { _sum: { amount: 75 } } // all transactions sum
+  ]);
 
   it("POST /accounts creates one", async () => {
     prismaMock.account.create.mockResolvedValue({
       id: 2,
       name: "Savings",
+      type: "creditCard",
       currency: "USD",
       ownerId: 1,
       description: "desc",
@@ -38,6 +39,7 @@ prismaMock.$transaction.mockResolvedValue([
       .set("Authorization", `Bearer ${token}`)
       .send({
         name: "Savings",
+        type: "creditCard",
         startingBalance: 100,
         description: "desc",
         notes: "notes"
@@ -45,6 +47,7 @@ prismaMock.$transaction.mockResolvedValue([
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty("name", "Savings");
+    expect(res.body).toHaveProperty("type", "creditCard");
     expect(res.body).toHaveProperty("startingBalance");
   });
 
@@ -53,6 +56,7 @@ prismaMock.$transaction.mockResolvedValue([
     prismaMock.account.findUnique.mockResolvedValue({
       id: 5,
       name: "DailyAcc",
+      type: "bank",
       currency: "USD",
       ownerId: 1,
       startingBalance: "100.00" as any,
@@ -80,6 +84,7 @@ prismaMock.$transaction.mockResolvedValue([
     const body = res.body;
 
     expect(body).toHaveProperty("id", 5);
+    expect(body).toHaveProperty("type", "bank");
     expect(body).toHaveProperty("currentBalance");
     expect(body).toHaveProperty("forecastBalance");
     expect(body).toHaveProperty("dailySeries");
