@@ -1,9 +1,7 @@
-import {  toYmd } from "./date";
+import { toYmd } from "./date";
 import { BalanceSummary, DailyBalancePoint } from "../types";
-import { Decimal } from "@prisma/client/runtime/library";
 import { Account } from "@prisma/client";
-
-
+import { Decimal } from "@prisma/client/runtime/client";
 
 export function makeAccountWithSummary(
   account: Account,
@@ -33,7 +31,6 @@ export function buildAccountDailySummaries(
   const todayKey = toYmd(new Date());
 
   let currentBalance = start;
-
 
   const finalizeDay = (dayKey: string) => {
     balance = balance + currentIncome + currentExpense;
@@ -65,7 +62,6 @@ export function buildAccountDailySummaries(
 
     if (tx.type === "income") currentIncome += value;
     else if (tx.type === "expense") currentExpense += value;
-    
   }
 
   // finalize last day
@@ -77,7 +73,6 @@ export function buildAccountDailySummaries(
     dailySeries.length > 0
       ? dailySeries[dailySeries.length - 1].balance
       : start;
-
 
   return {
     currentBalance,

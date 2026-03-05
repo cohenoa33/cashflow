@@ -19,7 +19,8 @@ accountRouter.post("/", async (req: AuthenticatedRequest, res: Response) => {
     currency = "USD",
     description,
     notes,
-    startingBalance = 0
+    startingBalance = 0, 
+    type="bank" 
   } = req.body || {};
 
   if (!CurrencySymbols[currency]) {
@@ -33,7 +34,7 @@ accountRouter.post("/", async (req: AuthenticatedRequest, res: Response) => {
       name,
       currency,
       description,
-      notes,
+      notes,type,
       startingBalance,
       ownerId: req.userId
     }
@@ -67,6 +68,7 @@ accountRouter.get("/", async (req: AuthenticatedRequest, res: Response) => {
       ownerId: true,
       description: true,
       notes: true,
+      type: true,
       startingBalance: true,
       createdAt: true,
       updatedAt: true, transactions: {orderBy: { date: "asc" },}
@@ -129,12 +131,13 @@ accountRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response) => 
     return res.status(403).json({ error: "only owner can edit this account" });
   }
 
-  const { name, currency , notes, description} = req.body || {};
+  const { name, currency , notes, description, type} = req.body || {};
   const data: any = {};
   if (notes !== undefined) data.notes = notes;
   if (description !== undefined) data.description = description;
   if (name !== undefined) data.name = name;
   if (currency !== undefined) data.currency = currency;
+  if (type !== undefined) data.type = type;
 
     if (!CurrencySymbols[currency]) {
       return res.status(400).json({ error: "Unsupported currency" });

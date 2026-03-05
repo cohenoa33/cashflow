@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -27,6 +28,7 @@ model Account {
   description     String?
   notes           String?
   currency        String                  @default("USD")
+  type            String?                  @default("bank")
   startingBalance Decimal                 @default(0.00) @db.Decimal(12, 2)
   ownerId         Int
   owner           User                    @relation(fields: [ownerId], references: [id])
