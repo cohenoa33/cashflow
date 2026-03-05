@@ -14,25 +14,24 @@ export default function ForgotPasswordPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-   if (!validEmail(email) ) {
+    if (!validEmail(email)) {
       setErr("Please enter a valid email");
       return;
-     }
-    
+    }
+
     setErr(null);
     setSuccess(false);
     setBusy(true);
 
     try {
-    await api<{ token: string }>("/forgot-password", {
-              method: "POST",
-              body: JSON.stringify({ email })
-            });
+      await api<{ token: string }>("/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email })
+      });
 
       setSuccess(true);
       setEmail("");
     } catch (error: unknown) {
-
       setErr(handleError(error, 1));
     } finally {
       setBusy(false);
@@ -45,7 +44,7 @@ export default function ForgotPasswordPage() {
         onSubmit={onSubmit}
         className="w-full max-w-sm space-y-4 rounded-2xl border p-6 shadow"
       >
-        <h1 className="text-2xl font-semibold">Forgot Password</h1>
+        <h1 className="text-4xl font-bold">Forgot Password</h1>
 
         <p className="text-sm text-gray-600">
           Enter your email address and we&apos;ll send you a link to reset your

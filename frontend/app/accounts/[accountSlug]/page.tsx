@@ -60,7 +60,8 @@ export default function AccountDetailPage() {
   }, [accountId, refreshKey, redirecting, router]);
 
   const bumpRefresh = () => {
-    setRefreshKey((k) => k + 1);}
+    setRefreshKey((k) => k + 1);
+  };
 
   // Quiet UI while redirecting
   if (redirecting) {
@@ -73,7 +74,7 @@ export default function AccountDetailPage() {
     return (
       <AppShell>
         <header className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">{message}</h1>
+          <h1 className="text-4xl font-bold">{message}</h1>
         </header>
       </AppShell>
     );
@@ -83,7 +84,7 @@ export default function AccountDetailPage() {
     <AppShell>
       {/* Header + top-level mode switch (View / Edit) */}
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{account.name}</h1>
+        <h1 className="text-4xl font-bold">{account.name}</h1>
         <div className="flex items-center gap-2 text-sm">
           <button
             type="button"
@@ -124,6 +125,7 @@ export default function AccountDetailPage() {
         <EditAccountForm
           account={{
             id: account.id,
+            type: account.type ?? "bank",
             name: account.name,
             currency: account.currency,
             description: account.description,

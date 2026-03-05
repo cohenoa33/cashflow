@@ -8,10 +8,11 @@ import type { Account, AccountRow } from "@/types/api";
 import { handleError } from "@/lib/error";
 import Button from "@/components/ui/Button";
 import AccountsOverviewTable from "@/components/accounts/AccountsOverviewTable";
+import { accountTypeList } from "@/lib/account";
 
 export default function AccountsPage() {
   const router = useRouter();
-  const [items, setItems] = useState<AccountRow[]>([]);
+  const [items, setItems] = useState<Record<string, AccountRow[]>>({});
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
@@ -52,7 +53,7 @@ export default function AccountsPage() {
      );
     }
 
-  if (items.length === 0) {
+  if (Object.keys(items).length === 0) {
     return (
       <AppShell>
         <section >
@@ -73,22 +74,36 @@ export default function AccountsPage() {
       </AppShell>
     );
   }
+  function makeAccountsList(accounts: Account[]): Record<string, AccountRow[]> {
+    const accountByType = accounts.reduce(
+      (acc, a) => {
+        const type = a.type ?? "other";
+        const typeLabel = accountTypeList.find((t) => t.type === type)?.label ?? type;
+console.log(type, typeLabel);
+        if (!acc[typeLabel]) {
+          acc[typeLabel] = [];
+        }
+        acc[typeLabel].push({
+          id: a.id,
+          name: a.name,
+          currency: a.currency,
+          currentBalance: Number(a.currentBalance ?? 0),
+          type,
+          description: a.description ?? "",
+          forecastBalance: Number(a.forecastBalance ?? a.currentBalance ?? 0),
+          delta:
+            Number(a.forecastBalance ?? a.currentBalance ?? 0) -
+            Number(a.currentBalance ?? 0)
+        });
+        return acc;
+      },
+      {} as Record<string, AccountRow[]>
+    );
 
-  function makeAccountsList(accounts: Account[]): AccountRow[] {
-    return accounts.map((a) => {
-      const current = Number(a.currentBalance ?? 0);
-      const forecast = Number(a.forecastBalance ?? a.currentBalance ?? 0);
-      return {
-        id: a.id,
-        name: a.name,
-        currency: a.currency,
-        currentBalance: current,
-        description: a.description ?? "",
-        forecastBalance: forecast,
-        delta: forecast - current
-      };
-    });
+    return accountByType;
   }
+
+
   return (
     <AppShell>
       <AccountsOverviewTable accounts={items} />

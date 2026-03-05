@@ -27,8 +27,6 @@ export default function ResetPasswordPage() {
       setErr("Invalid reset link. Please request a new password reset.");
     }
   }, [token]);
-  
-
 
   const invalid = password.length > 0 && newTouched && !validPassword(password);
   const same = password === confirmPassword;
@@ -68,14 +66,16 @@ export default function ResetPasswordPage() {
       }, 2000);
     } catch (error: unknown) {
       setErr(handleError(error, 1));
-      if (error instanceof Error && error.message === "Invalid or expired reset token") {
-        setDisable(true)
+      if (
+        error instanceof Error &&
+        error.message === "Invalid or expired reset token"
+      ) {
+        setDisable(true);
         // If the token is invalid or expired, redirect to forgot-password page after showing the error
         setTimeout(() => {
           router.push("/forgot-password");
         }, 5000);
       }
-
     } finally {
       setBusy(false);
     }
@@ -86,7 +86,7 @@ export default function ResetPasswordPage() {
       <main className="min-h-dvh grid place-items-center p-6">
         <div className="w-full max-w-sm space-y-4 rounded-2xl border p-6 shadow text-center">
           <div className="text-green-600 text-5xl mb-4">✓</div>
-          <h1 className="text-2xl font-semibold">Password Reset Successful</h1>
+          <h1 className="text-4xl font-bold">Password Reset Successful</h1>
           <p className="text-sm text-gray-600">
             Your password has been reset successfully. Redirecting to login...
           </p>
@@ -101,7 +101,7 @@ export default function ResetPasswordPage() {
         onSubmit={onSubmit}
         className="w-full max-w-sm space-y-4 rounded-2xl border p-6 shadow"
       >
-        <h1 className="text-2xl font-semibold">Reset Password</h1>
+        <h1 className="text-4xl font-bold">Reset Password</h1>
 
         <p className="text-sm text-gray-600">Enter your new password below.</p>
 

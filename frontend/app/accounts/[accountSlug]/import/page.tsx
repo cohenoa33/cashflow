@@ -72,7 +72,7 @@ export default function AccountImportTransactionsPage() {
 
          <AppShell> 
           <header className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold">{message}</h1>
+            <h1 className="text-4xl font-bold">{message}</h1>
           </header>
           </AppShell>
    
@@ -84,7 +84,7 @@ export default function AccountImportTransactionsPage() {
       {/* Header + top-level mode switch (View / Edit) */}
       <header className="flex items-center justify-between">
         <h1
-          className="text-2xl font-semibold"
+          className="text-4xl font-bold"
           onClick={() => router.push(`/accounts/${slug}`)}
         >
           {account.name}

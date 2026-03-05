@@ -7,6 +7,7 @@ export type Account = {
   currency: string;
   ownerId: number;
   description?: string | null;
+  type?: string;
   notes?: string | null;
   startingBalance: number | string;
   currentBalance: number | string;
@@ -20,6 +21,7 @@ export type AccountRow = {
   id: number;
   name: string;
   currency: string;
+  type: string;
   description: string;
   currentBalance: number;
   forecastBalance: number;
@@ -30,6 +32,7 @@ export type AccountDetail = {
   id: number;
   name: string;
   currency: string;
+  type?: string;
   description?: string | null;
   notes?: string | null;
   startingBalance: number | string;

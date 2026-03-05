@@ -37,9 +37,9 @@ export default function AccountView({
   return (
     <section className="space-y-6">
       {/* Top row: balances + actions */}
-      <header className="flex items-center justify-between text-sm">
+      <header className="flex items-center justify-between text-sm ">
         <div>
-          <p className="flex items-start gap-2">
+          <p className="flex items-start gap-2 font-bold text-base">
             {description && <span>{description}</span>}
             {notes && (
               <button

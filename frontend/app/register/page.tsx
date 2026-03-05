@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { saveToken } from "@/lib/auth";
 import { handleError } from "@/lib/error";
-import {validPassword } from "@/lib/password";
+import { validPassword } from "@/lib/password";
 import { validEmail } from "@/lib/email";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
@@ -18,8 +18,6 @@ export default function RegisterPage() {
   const [touched, setTouched] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [newTouched, setNewTouched] = useState(false);
-
-
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,8 +42,7 @@ export default function RegisterPage() {
     }
   }
   const invalid = password.length > 0 && newTouched && !validPassword(password);
-const  invalidEmail = email.length > 0 && touched && !validEmail(email);
-
+  const invalidEmail = email.length > 0 && touched && !validEmail(email);
 
   return (
     <main className="min-h-dvh grid place-items-center p-6">
@@ -53,7 +50,7 @@ const  invalidEmail = email.length > 0 && touched && !validEmail(email);
         onSubmit={onSubmit}
         className="w-full max-w-sm space-y-4 rounded-2xl border p-6 shadow"
       >
-        <h1 className="text-2xl font-semibold">Create account</h1>
+        <h1 className="text-4xl font-bold">Create account</h1>
         <label className="block">
           <span className="text-sm">Email</span>
           <input
@@ -95,12 +92,7 @@ const  invalidEmail = email.length > 0 && touched && !validEmail(email);
           special character.
         </p>
         {err && <p className="text-sm text-danger">{err}</p>}
- 
-        <Button
-          disabled={busy}
-          type="submit"
-          className="w-full text-base"
-        >
+        <Button disabled={busy} type="submit" className="w-full text-base">
           {busy ? "Creating..." : "Create Account"}
         </Button>
         <p className="text-sm text-center">

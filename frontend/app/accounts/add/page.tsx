@@ -8,21 +8,24 @@ import Button from "@/components/ui/Button";
 import { CurrencyList } from "@/lib/currency";
 import { useRouter } from "next/navigation";
 import { accountUrl } from "@/lib/slug";
+import { accountTypeList } from "@/lib/account";
 import { getAmountInputValue, getAmountKeyDownValue } from "@/lib/amount";
 
 export default function AddAccountPage() {
+
+
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("USD");
+  const [type, setType] = useState({type:"bank", label: "Bank"});
   const [startingBalance, setStartingBalance] = useState<string>("");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const router = useRouter();
-  
 
   const [nameInvalid, setNameInvalid] = useState(false);
-  const [numberInvalid, setNumberInvalid] = useState(false);  
+  const [numberInvalid, setNumberInvalid] = useState(false);
 
   useEffect(() => {
     setNameInvalid(name.trim().length < 2);
@@ -43,7 +46,7 @@ export default function AddAccountPage() {
     if (nameInvalid || numberInvalid) {
       return;
     }
-  
+
     setErr(null);
     setBusy(true);
     try {
@@ -52,6 +55,7 @@ export default function AddAccountPage() {
         body: JSON.stringify({
           name,
           currency,
+          type: type.type,
           description: description || undefined,
           notes: notes || undefined,
           startingBalance:
@@ -74,11 +78,10 @@ export default function AddAccountPage() {
     }
   }
 
-
   return (
     <AppShell>
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Add Account</h1>
+        <h1 className="text-4xl font-bold">Add Account</h1>
         <button
           type="button"
           aria-label="Close"
@@ -124,10 +127,9 @@ export default function AddAccountPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="text-sm">Currency</label>
-
             <select
               className="mt-1 w-full rounded-lg border outline-none p-2 bg-white"
               value={currency}
@@ -135,7 +137,21 @@ export default function AddAccountPage() {
             >
               {CurrencyList.map((c) => (
                 <option key={c.code} value={c.code}>
-                  {c.code} — {c.name}
+                  {c.code} - {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-sm">Account Type</label>
+            <select
+              className="mt-1 w-full rounded-lg border outline-none p-2 bg-white"
+              value={type.type}
+              onChange={(e) => setType(accountTypeList.find((t) => t.type === e.target.value) || {type:"bank", label: "Bank"})}
+            >
+              {accountTypeList.map((t) => (
+                <option key={t.type} value={t.type}>
+                  {t.label}
                 </option>
               ))}
             </select>

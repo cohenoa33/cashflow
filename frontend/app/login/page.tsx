@@ -19,10 +19,10 @@ export default function LoginPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-      if (!validEmail(email) || !validPassword(password)) {
+    if (!validEmail(email) || !validPassword(password)) {
       setErr("Please enter a valid email and password.");
       return;
-        }
+    }
     setErr(null);
     setBusy(true);
     try {
@@ -45,7 +45,7 @@ export default function LoginPage() {
         onSubmit={onSubmit}
         className="w-full max-w-sm space-y-4 rounded-2xl border p-6 shadow"
       >
-        <h1 className="text-2xl font-semibold">Sign in</h1>
+        <h1 className="text-4xl font-bold">Sign in</h1>
 
         <label className="block">
           <span className="text-sm">Email</span>

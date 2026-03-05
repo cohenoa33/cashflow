@@ -6,10 +6,12 @@ import { handleError } from "@/lib/error";
 import Button from "@/components/ui/Button";
 import { CurrencyList } from "@/lib/currency";
 import DeleteAccountButton from "@/components/accounts/DeleteAccountButton";
+import { accountTypeList } from "@/lib/account";
 
 type EditableAccount = {
   id: number;
   name: string;
+  type: string;
   currency: string;
   description?: string | null;
   notes?: string | null;
@@ -23,6 +25,7 @@ export default function EditAccountForm({
   onSaved?: (updated: EditableAccount) => void;
 }) {
   const [name, setName] = useState(account.name);
+  const [type, setType] = useState({ type: account.type, label: account.type });
   const [currency, setCurrency] = useState(account.currency ?? "USD");
   const [description, setDescription] = useState(account.description ?? "");
   const [notes, setNotes] = useState(account.notes ?? "");
@@ -44,6 +47,7 @@ export default function EditAccountForm({
         body: JSON.stringify({
           name,
           currency,
+          type: type.type,
           description: description || null,
           notes: notes || null
         })
@@ -96,6 +100,23 @@ export default function EditAccountForm({
                   {CurrencyList.map((c) => (
                     <option key={c.code} value={c.code}>
                       {c.name} ({c.symbol} {c.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {/* Account Type row */}
+            <div>
+              <label className="block text-sm font-medium">Account Type</label>
+              <div className="mt-1 w-full sm:max-w-sm">
+                <select
+                  className="w-full rounded-lg border p-2 bg-white text-sm"
+                  value={type.type}
+                  onChange={(e) => setType(accountTypeList.find((t) => t.type === e.target.value) || {type:"bank", label: "Bank"})}
+                >
+                  {accountTypeList.map((t) => (
+                    <option key={t.type} value={t.type}>
+                      {t.label}
                     </option>
                   ))}
                 </select>

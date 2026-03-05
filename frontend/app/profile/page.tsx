@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { handleError } from "@/lib/error";
-import {  validatePassword, validPassword } from "@/lib/password";
+import { validatePassword, validPassword } from "@/lib/password";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
 import AppShell from "@/components/layout/AppShell";
@@ -42,8 +42,6 @@ export default function ProfilePage() {
   const [currentTouched, setCurrentTouched] = useState(false);
   const [newTouched, setNewTouched] = useState(false);
   const [confirmTouched, setConfirmTouched] = useState(false);
-
-
 
   useEffect(() => {
     async function load() {
@@ -129,81 +127,81 @@ export default function ProfilePage() {
     setProfileSuccess(null);
   }
 
- async function handleChangePassword(e: React.FormEvent) {
-   e.preventDefault();
-   setPasswordError(null);
-   setPasswordSuccess(null);
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
 
-   if (!changingPassword) return;
+    if (!changingPassword) return;
 
-   if (currentPassword.trim().length === 0) {
-     setPasswordError("Current password is required");
-     return;
-   }
-const passwordError = validatePassword(newPassword);
-   if (passwordError) {
-     setPasswordError(passwordError);
-     return;
-   }
+    if (currentPassword.trim().length === 0) {
+      setPasswordError("Current password is required");
+      return;
+    }
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      setPasswordError(passwordError);
+      return;
+    }
 
-   if (newPassword !== confirmPassword) {
-     setPasswordError("New password and confirmation do not match");
-     return;
-   }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirmation do not match");
+      return;
+    }
 
-   try {
-     setPasswordBusy(true);
+    try {
+      setPasswordBusy(true);
 
-     await api<{ ok: boolean }>("/user/change-password", {
-       method: "POST",
-       body: JSON.stringify({
-         currentPassword,
-         newPassword
-       })
-     });
+      await api<{ ok: boolean }>("/user/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          currentPassword,
+          newPassword
+        })
+      });
 
-     setPasswordSuccess("Password updated successfully");
-     setCurrentPassword("");
-     setNewPassword("");
-     setConfirmPassword("");
-     setCurrentTouched(false);
-     setNewTouched(false);
-     setConfirmTouched(false);
-     setChangingPassword(false);
-   } catch (e) {
-     setPasswordError(handleError(e, 9));
-   } finally {
-     setPasswordBusy(false);
-   }
- }
+      setPasswordSuccess("Password updated successfully");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setCurrentTouched(false);
+      setNewTouched(false);
+      setConfirmTouched(false);
+      setChangingPassword(false);
+    } catch (e) {
+      setPasswordError(handleError(e, 9));
+    } finally {
+      setPasswordBusy(false);
+    }
+  }
 
-function handleCancelChangePassword() {
-  setChangingPassword(false);
-  setCurrentPassword("");
-  setNewPassword("");
-  setConfirmPassword("");
-  setCurrentTouched(false);
-  setNewTouched(false);
-  setConfirmTouched(false);
-  setPasswordError(null);
-  setPasswordSuccess(null);
-}
+  function handleCancelChangePassword() {
+    setChangingPassword(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setCurrentTouched(false);
+    setNewTouched(false);
+    setConfirmTouched(false);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+  }
 
   const firstInvalid = editing && firstName.trim().length < 2;
   const lastInvalid = editing && lastName.trim().length < 2;
   const currentInvalid =
-   changingPassword && currentTouched && currentPassword.trim().length === 0;
+    changingPassword && currentTouched && currentPassword.trim().length === 0;
 
- const newInvalid =
-   changingPassword && newTouched && !validPassword(newPassword);
+  const newInvalid =
+    changingPassword && newTouched && !validPassword(newPassword);
 
- const confirmInvalid =
-   changingPassword &&
-   confirmTouched &&
-   (confirmPassword.trim().length === 0 || confirmPassword !== newPassword);
+  const confirmInvalid =
+    changingPassword &&
+    confirmTouched &&
+    (confirmPassword.trim().length === 0 || confirmPassword !== newPassword);
   return (
     <AppShell>
-      <h1 className="text-2xl font-semibold">Profile</h1>
+      <h1 className="text-4xl font-bold">Profile</h1>
       {loading && <p className="text-sm text-primary">Loading profile…</p>}
       {user && (
         <>
