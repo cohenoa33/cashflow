@@ -40,60 +40,66 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-dvh grid place-items-center p-6">
-      <form
-        onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-2xl border p-6 shadow"
-      >
-        <h1 className="text-4xl font-bold">Sign in</h1>
-
-        <label className="block">
-          <span className="text-sm">Email</span>
-          <input
-            className="mt-1 w-full rounded-lg border p-2 focus:outline-none focus:ring-0"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="me@example.com"
-            required
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-sm">Password</span>
-          <PasswordInput
-            maxHeight
-            value={password}
-            onChange={(v) => {
-              setPassword(v);
-            }}
-            invalid={false}
-            placeholder="••••••••"
-          />
-        </label>
-
-        <div className="text-right">
-          <a
-            className="text-sm underline text-blue-600 hover:text-blue-700"
-            href="/forgot-password"
-          >
-            Forgot password?
-          </a>
+    <main className="min-h-dvh grid place-items-center p-6 bg-bg">
+      <div className="w-full max-w-sm space-y-6">
+        {/* Branding */}
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-fg">Cashflow</h1>
+          <p className="text-sm text-fg/60">Sign in to your account</p>
         </div>
 
-        {err && <p className="text-sm text-red-600">{err}</p>}
+        <form
+          onSubmit={onSubmit}
+          className="space-y-4 rounded-2xl border border-black/10 bg-white/80 backdrop-blur-sm p-6 shadow-sm"
+        >
+          <label className="block">
+            <span className="text-sm font-medium text-fg/80">Email</span>
+            <input
+              className="mt-1 w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-shadow"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="me@example.com"
+              required
+            />
+          </label>
 
-        <Button disabled={busy} type="submit" className="w-full text-base">
-          {busy ? "Signing in..." : "Sign in"}
-        </Button>
+          <label className="block">
+            <span className="text-sm font-medium text-fg/80">Password</span>
+            <PasswordInput
+              maxHeight
+              value={password}
+              onChange={(v) => {
+                setPassword(v);
+              }}
+              invalid={false}
+              placeholder="••••••••"
+            />
+          </label>
 
-        <p className="text-sm text-center">
-          No account?{" "}
-          <a className="underline" href="/register">
-            Create one
-          </a>
-        </p>
-      </form>
+          <div className="text-right">
+            <a
+              className="text-sm text-fg/60 hover:text-fg underline underline-offset-2 transition-colors"
+              href="/forgot-password"
+            >
+              Forgot password?
+            </a>
+          </div>
+
+          {err && <p className="text-sm text-danger">{err}</p>}
+
+          <Button disabled={busy} type="submit" className="w-full text-sm py-2.5">
+            {busy ? "Signing in…" : "Sign in"}
+          </Button>
+
+          <p className="text-sm text-center text-fg/60">
+            No account?{" "}
+            <a className="text-fg font-medium underline underline-offset-2 hover:text-fg/80 transition-colors" href="/register">
+              Create one
+            </a>
+          </p>
+        </form>
+      </div>
     </main>
   );
 }

@@ -15,19 +15,21 @@ export default function NavBar() {
   }
 
   const linkClass = (href: string) =>
-    `px-3 py-2 rounded-md text-sm text-primary ${
-      pathname === href ? " font-extrabold" : " hover:text-accent "
+    `px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150 ${
+      pathname === href
+        ? "bg-black/10 font-semibold text-fg"
+        : "text-fg/70 hover:text-fg hover:bg-black/5"
     }`;
 
   return (
-    <nav className="w-full bg-gray shadow-sm">
+    <nav className="w-full bg-brand/80 backdrop-blur-sm border-b border-black/10 sticky top-0 z-40">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-4">
-          <Link href="/accounts" className="text-lg font-semibold text-success">
+        <div className="flex items-center gap-5">
+          <Link href="/accounts" className="text-base font-bold tracking-tight text-fg">
             Cashflow
           </Link>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <Link href="/accounts" className={linkClass("/accounts")}>
               Accounts
             </Link>
@@ -36,9 +38,8 @@ export default function NavBar() {
             </Link>
           </div>
         </div>
-        {/* TODO: change this to be dropdown with option to profile/ logout */}
-    
-        <Button onClick={handleLogout}>Logout</Button>
+
+        <Button variant="ghost" onClick={handleLogout}>Logout</Button>
       </div>
     </nav>
   );

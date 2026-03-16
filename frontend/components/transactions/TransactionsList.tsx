@@ -258,21 +258,21 @@ export default function TransactionsList({
         <div className="flex justify-end gap-4 text-sm pb-4">
           <button
             type="button"
-            className={"text-gray-500 hover:underline"}
+            className={"text-fg/50 hover:underline"}
             onClick={() => setIsAddOpen(true)}
           >
             Add transaction
           </button>
-          <span className="text-gray-400">|</span>
+          <span className="text-fg/30">|</span>
           <button
             type="button"
-            className={"text-gray-500 hover:underline"}
+            className={"text-fg/50 hover:underline"}
             onClick={() => router.push(`/accounts/${accountId}/import`)}
           >
             Import transactions
           </button>
         </div>
-        <p className="text-gray-500">
+        <p className="text-fg/50">
           No transactions yet (balance is set based on initial deposit)
         </p>
       </section>
@@ -298,15 +298,15 @@ export default function TransactionsList({
       <div className="flex justify-end gap-4 text-sm pb-4">
         <button
           type="button"
-          className={"text-gray-500 hover:underline"}
+          className={"text-fg/50 hover:underline"}
           onClick={() => setIsAddOpen(true)}
         >
           Add transaction
         </button>
-        <span className="text-gray-400">|</span>
+        <span className="text-fg/30">|</span>
         <button
           type="button"
-          className={"text-gray-500 hover:underline"}
+          className={"text-fg/50 hover:underline"}
           onClick={() => router.push(`/accounts/${accountId}/import`)}
         >
           Import transactions
@@ -314,9 +314,9 @@ export default function TransactionsList({
    
       </div>
 
-      <div className="overflow-auto rounded-lg border bg-white/60 w-[850px]">
+      <div className="overflow-x-auto rounded-lg border border-black/10 bg-white/70">
         {/* table upper section for showing transactions */}
-        <div className="flex items-center  justify-between gap-6 px-3 py-2 text-sm text-gray-600 font-bold">
+        <div className="flex items-center justify-between gap-6 px-3 py-2 text-sm text-fg/70 font-medium">
           <div>
             Showing:
             <select
@@ -332,7 +332,7 @@ export default function TransactionsList({
             <button
               type="button"
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-fg/50 hover:text-gray-700"
               title="Search filters"
             >
               <svg
@@ -367,12 +367,12 @@ export default function TransactionsList({
           />
         )}
         {filterOn && (
-          <div className="px-3 py-2 text-sm flex flex-wrap gap-2">
+          <div className="px-3 py-2 text-sm flex flex-wrap gap-2 border-t border-black/5">
             {Object.entries(filters).map(([key, value]) =>
               value !== "" ? (
                 <div
                   key={key}
-                  className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-xs font-medium"
+                  className="flex items-center gap-1.5 bg-brand/20 border border-brand/30 px-2.5 py-0.5 rounded-full text-xs font-medium text-fg"
                 >
                   <span>{`${keyDictionary(key)}: ${value}`}</span>
                   <button
@@ -391,7 +391,7 @@ export default function TransactionsList({
                       setCurrentPage(1);
                       setFilterOn(!reset);
                     }}
-                    className="hover:text-blue-900 font-bold"
+                    className="hover:text-danger font-bold transition-colors"
                     title={`Remove ${key} filter`}
                   >
                     ×
@@ -401,7 +401,7 @@ export default function TransactionsList({
             )}
           </div>
         )}
-        <table className="w-[850px] text-sm border border-white table-fixed">
+        <table className="w-full min-w-[600px] text-sm table-fixed">
           <colgroup>
             <col className="w-[120px]" />
             <col className="w-[120px]" />
@@ -410,8 +410,8 @@ export default function TransactionsList({
             <col className="w-[90px]" />
           </colgroup>
 
-          <thead className="bg-gray-50 text-left">
-            <tr className=" text-gray-600">
+          <thead className="bg-black/5 text-left">
+            <tr className="text-fg/60">
               <th className="px-3 py-2 w-[120px]">
                 <SortButton
                   active={sortBy === "date"}
@@ -452,13 +452,12 @@ export default function TransactionsList({
             </tr>
           </thead>
 
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-black/5">
             {paginatedItems.map((t) => {
               return (
                 <tr
                   key={t.id}
-                  className="hover:bg-gray-50/60 align-top"
-                  style={{ cursor: "pointer" }}
+                  className="hover:bg-black/5 align-top cursor-pointer transition-colors duration-100"
                 >
                   <td className="px-3 py-2 w-[120px]">
                     {getTodayDateString(t.date)}
@@ -492,7 +491,7 @@ export default function TransactionsList({
 
             {paginatedItems.length === 0 && (
               <tr>
-                <td className="px-3 py-8 text-center text-gray-500" colSpan={5}>
+                <td className="px-3 py-8 text-center text-fg/50" colSpan={5}>
                   No transactions match the filters.
                 </td>
               </tr>
@@ -504,7 +503,7 @@ export default function TransactionsList({
       {/* Pagination Controls */}
       <div className="flex items-center justify-between gap-4 pt-2 text-sm">
         <div className="flex items-center gap-2">
-          <span className="text-gray-600">Show:</span>
+          <span className="text-fg/60">Show:</span>
           <select
             value={itemsPerPage}
             onChange={(e) => {
@@ -519,9 +518,9 @@ export default function TransactionsList({
               </option>
             ))}
           </select>
-          <span className="text-gray-600">per page</span>
+          <span className="text-fg/60">per page</span>
         </div>
-        <span className="text-gray-600">
+        <span className="text-fg/60">
           Page {currentPage} of {totalPages}
         </span>
         <div className="flex gap-2">

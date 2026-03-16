@@ -11,29 +11,30 @@ export default function PopupModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       aria-modal="true"
       role="dialog"
       aria-label={label}
     >
-      {/* Backdrop (non-dismissable by click) */}
-      <div className="absolute inset-0  -mt-[50px]" />
+      {/* Dimming backdrop */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
 
       {/* Dialog */}
       <div
-        className="relative z-10 w-full max-w-4xl rounded-xl bg-accent p-4 shadow-xl text-primary "
-        // prevent closing when clicking inside
+        className="relative z-10 w-full max-w-4xl rounded-xl bg-surface-10 p-5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">{label}</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-base font-semibold tracking-tight text-white">{label}</h2>
           <button
             type="button"
-            aria-label="Close"
+            aria-label="Close dialog"
             onClick={close}
-            className="rounded-md p-1 text-gray-500 hover:text-gray-800"
+            className="rounded-md p-1.5 text-white/50 hover:text-white hover:bg-white/10 transition-colors duration-150"
           >
-            ✕
+            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M2 2l12 12M14 2L2 14" />
+            </svg>
           </button>
         </div>
 

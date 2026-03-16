@@ -10,12 +10,16 @@ type ButtonProps = {
   disabled?: boolean;
   variant?: ButtonVariant;
 };
-type ButtonVariant = "primary" | "accent" | "danger";
+type ButtonVariant = "primary" | "accent" | "danger" | "secondary" | "ghost";
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-surface text-white",
-  accent: "bg-accent text-white",
-  danger: "bg-danger text-white"
+  primary: "bg-surface-10 text-white hover:bg-surface-20 active:bg-surface-30",
+  accent: "bg-accent text-white hover:bg-surface-40 active:bg-surface-50",
+  danger: "bg-danger text-white hover:bg-danger-muted active:opacity-90",
+  secondary:
+    "bg-transparent border border-surface-20 text-fg hover:bg-black/5 active:bg-black/10",
+  ghost:
+    "bg-transparent text-fg/70 hover:text-fg hover:bg-black/8 active:bg-black/12"
 };
 
 export default function Button({
@@ -32,9 +36,9 @@ export default function Button({
       onClick={() => onClick?.()}
       disabled={disabled}
       className={[
-        "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 ",
-        "text-white  disabled:opacity-60 disabled:cursor-not-allowed",
-        " transition-shadow  hover:drop-shadow-[0_0_4px_rgba(0,0,0,0.24)]",
+        "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium",
+        "transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
         variantClasses[variant],
         className
       ].join(" ")}
@@ -62,8 +66,8 @@ export function SortButton({
       type="button"
       onClick={onClick}
       className={[
-        "inline-flex items-center gap-1 hover:underline",
-        active ? "text-gray-900" : "text-gray-600"
+        "inline-flex items-center gap-1 transition-colors duration-150 hover:underline",
+        active ? "text-fg font-semibold" : "text-fg/60 hover:text-fg"
       ].join(" ")}
       title="Sort"
     >
