@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { saveToken } from "@/lib/auth";
 import { handleError } from "@/lib/error";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
@@ -26,11 +25,10 @@ export default function LoginPage() {
     setErr(null);
     setBusy(true);
     try {
-      const res = await api<{ token: string }>("/login", {
+      await api("/login", {
         method: "POST",
         body: JSON.stringify({ email, password })
       });
-      saveToken(res.token);
       router.push("/accounts");
     } catch (error: unknown) {
       setErr(handleError(error, 1));

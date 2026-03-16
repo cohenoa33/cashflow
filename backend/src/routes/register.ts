@@ -2,7 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcrypt";
 import { prisma } from "../prisma/client";
 import { Request, Response } from "express";
-import { signToken } from "../authentication";
+import { setAuthCookies } from "../authentication";
 import { PASSWORD_REGEX } from "../helpers/password";
 
 
@@ -26,7 +26,8 @@ const { email, password, name } = req.body || {};
   const user = await prisma.user.create({
     data: { email, password: hash, name }
   });
-    return res.json({ token: signToken(user.id) });
+    setAuthCookies(res, user.id);
+    return res.json({ ok: true });
 }
 
 

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { registerRoute } from "./routes/register";
 import { loginRoute } from "./routes/login";
 import { forgotPasswordRoute } from "./routes/forgot-password";
@@ -14,6 +15,7 @@ const app = express();
 
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:3000";
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(
   cors({
@@ -37,5 +39,10 @@ app.post("/register", registerRoute);
 app.post("/login", loginRoute);
 app.post("/forgot-password", forgotPasswordRoute);
 app.post("/reset-password", resetPasswordRoute);
+app.post("/logout", (_req, res) => {
+  res.clearCookie("cf_token", { path: "/", httpOnly: true });
+  res.clearCookie("cf_session", { path: "/" });
+  res.json({ ok: true });
+});
 
 export default app;

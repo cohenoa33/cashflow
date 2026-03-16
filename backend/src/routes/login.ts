@@ -2,7 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcrypt";
 import { prisma } from "../prisma/client";
 import { Request, Response } from "express";
-import { signToken } from "../authentication";
+import { setAuthCookies } from "../authentication";
 
 
 export async function loginRoute(req:Request, res:Response) {
@@ -15,7 +15,8 @@ export async function loginRoute(req:Request, res:Response) {
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
   
-    return res.json({ token: signToken(user.id) });
+    setAuthCookies(res, user.id);
+    return res.json({ ok: true });
 }
 
 

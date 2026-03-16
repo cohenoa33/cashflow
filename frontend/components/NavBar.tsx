@@ -9,9 +9,8 @@ export default function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  function handleLogout() {
-    logout();
-    router.replace("/login");
+  async function handleLogout() {
+    await logout();
   }
 
   const linkClass = (href: string) =>

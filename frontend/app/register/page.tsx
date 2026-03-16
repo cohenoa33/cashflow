@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { saveToken } from "@/lib/auth";
 import { handleError } from "@/lib/error";
 import { validPassword } from "@/lib/password";
 import { validEmail } from "@/lib/email";
@@ -28,11 +27,10 @@ export default function RegisterPage() {
     setErr(null);
     setBusy(true);
     try {
-      const res = await api<{ token: string }>("/register", {
+      await api("/register", {
         method: "POST",
         body: JSON.stringify({ email, password })
       });
-      saveToken(res.token);
       router.push("/accounts");
     } catch (error: unknown) {
       setErr(handleError(error, 1));
