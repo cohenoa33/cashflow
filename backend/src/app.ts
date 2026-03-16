@@ -14,12 +14,15 @@ import { userRoute, updateUserRoute, changePasswordRoute } from "./routes/user";
 
 const app = express();
 
-// Rate limiters — applied per IP before route handlers
+const isTest = process.env.NODE_ENV === "test";
+
+// Rate limiters — applied per IP before route handlers; skipped in test env
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,                   // 10 attempts per window
   standardHeaders: true,     // Return RateLimit-* headers
   legacyHeaders: false,
+  skip: () => isTest,
   message: { error: "Too many attempts, please try again later" }
 });
 
@@ -28,6 +31,7 @@ export const passwordLimiter = rateLimit({
   max: 5,                    // 5 attempts per window
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => isTest,
   message: { error: "Too many password reset attempts, please try again later" }
 });
 

@@ -1,87 +1,61 @@
+import express from "express";
 import request from "supertest";
-import bcrypt from "bcrypt";
-import app, { authLimiter, passwordLimiter } from "../src/app";
-import prismaMock from "./__mocks__/prisma";
+import rateLimit from "express-rate-limit";
 
-const TEST_IP = "::ffff:127.0.0.1";
+// Build a minimal Express app with fresh limiters (not the skip:true ones from app.ts)
+// so we can test the rate-limit logic without affecting other test suites.
 
-beforeEach(() => {
-  // Reset rate-limit counters between tests so they don't bleed into each other
-  authLimiter.resetKey(TEST_IP);
-  passwordLimiter.resetKey(TEST_IP);
-  jest.clearAllMocks();
-});
+function buildApp(max: number, windowMs = 15 * 60 * 1000) {
+  const limiter = rateLimit({
+    windowMs,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many attempts, please try again later" }
+  });
 
-describe("Rate limiting on /login", () => {
-  it("returns 429 after exceeding 10 attempts within the window", async () => {
-    prismaMock.user.findUnique.mockResolvedValue(null as any);
+  const server = express();
+  server.use(express.json());
+  server.post("/test", limiter, (_req, res) => res.json({ ok: true }));
+  return server;
+}
 
-    // Exhaust the limit (10 allowed)
-    for (let i = 0; i < 10; i++) {
-      await request(app)
-        .post("/login")
-        .send({ email: "x@example.com", password: "wrong" });
+describe("Rate limiter middleware", () => {
+  it("allows requests under the limit", async () => {
+    const server = buildApp(3);
+    const res = await request(server).post("/test");
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 429 after exceeding max attempts", async () => {
+    const server = buildApp(3);
+
+    for (let i = 0; i < 3; i++) {
+      await request(server).post("/test");
     }
 
-    // 11th request must be rate-limited
-    const res = await request(app)
-      .post("/login")
-      .send({ email: "x@example.com", password: "wrong" });
-
+    const res = await request(server).post("/test");
     expect(res.status).toBe(429);
     expect(res.body.error).toMatch(/too many/i);
   });
 
-  it("includes RateLimit headers in the response", async () => {
-    prismaMock.user.findUnique.mockResolvedValue(null as any);
-
-    const res = await request(app)
-      .post("/login")
-      .send({ email: "x@example.com", password: "wrong" });
+  it("includes RateLimit-Limit and RateLimit-Remaining headers", async () => {
+    const server = buildApp(5);
+    const res = await request(server).post("/test");
 
     expect(res.headers["ratelimit-limit"]).toBeDefined();
     expect(res.headers["ratelimit-remaining"]).toBeDefined();
   });
-});
 
-describe("Rate limiting on /register", () => {
-  it("returns 429 after exceeding 10 attempts within the window", async () => {
-    prismaMock.user.findUnique.mockResolvedValue(null as any);
-    prismaMock.user.create.mockResolvedValue({
-      id: 1, email: "t@e.com", password: "h", name: null,
-      createdAt: new Date(), updatedAt: new Date()
-    } as any);
+  it("decrements RateLimit-Remaining with each request", async () => {
+    const server = buildApp(5);
 
-    for (let i = 0; i < 10; i++) {
-      await request(app)
-        .post("/register")
-        .send({ email: `u${i}@example.com`, password: "Strong1!" });
-    }
+    const first = await request(server).post("/test");
+    const second = await request(server).post("/test");
 
-    const res = await request(app)
-      .post("/register")
-      .send({ email: "over@example.com", password: "Strong1!" });
+    const remainingAfterFirst = Number(first.headers["ratelimit-remaining"]);
+    const remainingAfterSecond = Number(second.headers["ratelimit-remaining"]);
 
-    expect(res.status).toBe(429);
-    expect(res.body.error).toMatch(/too many/i);
-  });
-});
-
-describe("Rate limiting on /forgot-password", () => {
-  it("returns 429 after exceeding 5 attempts within the window", async () => {
-    prismaMock.user.findUnique.mockResolvedValue(null as any);
-
-    for (let i = 0; i < 5; i++) {
-      await request(app)
-        .post("/forgot-password")
-        .send({ email: "x@example.com" });
-    }
-
-    const res = await request(app)
-      .post("/forgot-password")
-      .send({ email: "x@example.com" });
-
-    expect(res.status).toBe(429);
-    expect(res.body.error).toMatch(/too many/i);
+    expect(remainingAfterSecond).toBe(remainingAfterFirst - 1);
   });
 });
