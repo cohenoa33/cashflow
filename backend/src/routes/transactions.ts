@@ -32,8 +32,8 @@ transactionRouter.post("/", async (req: AuthenticatedRequest, res: Response) => 
   if (!accountId || amount === undefined || !type) {
     return res.status(400).json({ error: "accountId, amount, type required" });
   }
-  if (!(await canViewAccount(req.userId, accountId))) {
-    return res.status(404).json({ error: "account not found" });
+  if (!(await isOwner(req.userId, accountId))) {
+    return res.status(403).json({ error: "only owner can add transactions" });
   }
 
   const txDate = date ? new Date(date) : new Date();
@@ -65,8 +65,8 @@ transactionRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response)
   });
   if (!existing)
     return res.status(404).json({ error: "transaction not found" });
-  if (!(await canViewAccount(req.userId, existing.accountId))) {
-    return res.status(403).json({ error: "forbidden" });
+  if (!(await isOwner(req.userId, existing.accountId))) {
+    return res.status(403).json({ error: "only owner can edit" });
   }
   const nextDate = req.body.date ? new Date(req.body.date) : existing.date;
 
@@ -173,8 +173,8 @@ transactionRouter.post("/import", async (req: AuthenticatedRequest, res: Respons
   const userId = req.userId as number;
 
   // Ensure user can import to this account
-  if (!(await canViewAccount(userId, accountId))) {
-    return res.status(403).json({ error: "not allowed for this account" });
+  if (!(await isOwner(userId, accountId))) {
+    return res.status(403).json({ error: "only owner can import transactions" });
   }
 
   const errors: { index: number; message: string }[] = [];
