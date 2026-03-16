@@ -36,7 +36,7 @@ describe("Accounts routes with balance summary", () => {
 
     const res = await request(app)
       .post("/accounts")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", `cf_token=${token}`)
       .send({
         name: "Savings",
         type: "creditCard",
@@ -78,7 +78,7 @@ describe("Accounts routes with balance summary", () => {
 
     const res = await request(app)
       .get("/accounts/5")
-      .set("Authorization", `Bearer ${token}`);
+      .set("Cookie", `cf_token=${token}`);
 
     expect(res.status).toBe(200);
     const body = res.body;

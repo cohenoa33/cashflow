@@ -6,18 +6,23 @@ import prismaMock from "./__mocks__/prisma";
 import bcrypt from "bcrypt";
 
 const token = jwt.sign({ userId: 1 }, process.env.JWT_SECRET || "test_secret");
+const authCookie = `cf_token=${token}`;
 
-// Simple manual mock, don't fight TS here
 jest.mock("bcrypt", () => ({
   compare: jest.fn(),
   hash: jest.fn()
 }));
 
-const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
+const mockedBcrypt = jest.mocked(bcrypt);
 
 describe("User routes", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it("GET /user returns 401 without auth cookie", async () => {
+    const res = await request(app).get("/user");
+    expect(res.status).toBe(401);
   });
 
   it("GET /user returns current user profile", async () => {
@@ -34,7 +39,7 @@ describe("User routes", () => {
 
     const res = await request(app)
       .get("/user")
-      .set("Authorization", `Bearer ${token}`);
+      .set("Cookie", authCookie);
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
@@ -59,15 +64,15 @@ describe("User routes", () => {
     prismaMock.user.update.mockResolvedValue({
       id: 1,
       email: "test@example.com",
-      name: "NewFirst NewLast",
-      firstName: "NewFirst",
-      lastName: "NewLast",
+      name: "Newfirst Newlast",
+      firstName: "Newfirst",
+      lastName: "Newlast",
       createdAt: new Date()
     } as any);
 
     const res = await request(app)
       .patch("/user")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", authCookie)
       .send({
         firstName: "NewFirst",
         lastName: "NewLast",
@@ -75,13 +80,11 @@ describe("User routes", () => {
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.firstName).toBe("NewFirst");
-    expect(res.body.lastName).toBe("NewLast");
-
+    expect(res.body.firstName).toBe("Newfirst");
+    expect(res.body.lastName).toBe("Newlast");
     expect(prismaMock.user.update).toHaveBeenCalledTimes(1);
 
     const callArg = prismaMock.user.update.mock.calls[0][0];
-
     expect(callArg.data).toMatchObject({
       firstName: "NewFirst",
       lastName: "NewLast"
@@ -97,7 +100,7 @@ describe("User routes", () => {
 
     const res = await request(app)
       .patch("/user")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", authCookie)
       .send({
         firstName: "NewFirst",
         lastName: "NewLast",
@@ -112,7 +115,7 @@ describe("User routes", () => {
   it("PATCH /user rejects when no fields provided", async () => {
     const res = await request(app)
       .patch("/user")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", authCookie)
       .send({ id: 1 });
 
     expect(res.status).toBe(400);
@@ -135,7 +138,7 @@ describe("User routes", () => {
 
     const res = await request(app)
       .post("/user/change-password")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", authCookie)
       .send({
         currentPassword: "OldPass1!",
         newPassword: "NewPass1!"
@@ -157,10 +160,10 @@ describe("User routes", () => {
 
     const res = await request(app)
       .post("/user/change-password")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", authCookie)
       .send({
         currentPassword: "OldPass1!",
-        newPassword: "weak" // too weak for regex
+        newPassword: "weak"
       });
 
     expect(res.status).toBe(400);
@@ -179,7 +182,7 @@ describe("User routes", () => {
 
     const res = await request(app)
       .post("/user/change-password")
-      .set("Authorization", `Bearer ${token}`)
+      .set("Cookie", authCookie)
       .send({
         currentPassword: "WrongOldPass1!",
         newPassword: "NewPass1!"

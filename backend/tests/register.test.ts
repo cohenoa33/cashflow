@@ -8,7 +8,7 @@ describe("POST /register", () => {
     jest.clearAllMocks();
   });
 
-  it("creates user and returns token when password is strong", async () => {
+  it("creates user and sets httpOnly cookies when password is strong", async () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
 
     prismaMock.user.create.mockResolvedValue({
@@ -23,12 +23,21 @@ describe("POST /register", () => {
     const res = await request(app).post("/register").send({
       email: "new@example.com",
       name: "New User",
-      // Strong password: 8+ chars, lower, upper, number, special
       password: "Strong1!"
     });
 
     expect(res.status).toBe(200);
-    expect(res.body.token).toBeDefined();
+    expect(res.body.ok).toBe(true);
+    // token must NOT be in the response body
+    expect(res.body.token).toBeUndefined();
+
+    const cookies: string[] = res.headers["set-cookie"] as unknown as string[];
+    expect(cookies).toBeDefined();
+    const tokenCookie = cookies.find((c) => c.startsWith("cf_token="));
+    expect(tokenCookie).toBeDefined();
+    expect(tokenCookie).toMatch(/HttpOnly/i);
+    expect(cookies.some((c) => c.startsWith("cf_session=1"))).toBe(true);
+
     expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
       where: { email: "new@example.com" }
     });
@@ -51,6 +60,7 @@ describe("POST /register", () => {
     expect(res.status).toBe(409);
     expect(res.body.error).toBeDefined();
     expect(prismaMock.user.create).not.toHaveBeenCalled();
+    expect(res.headers["set-cookie"]).toBeUndefined();
   });
 
   it("returns 400 if password does not meet complexity requirements", async () => {
@@ -59,12 +69,12 @@ describe("POST /register", () => {
     const res = await request(app).post("/register").send({
       email: "weakpass@example.com",
       name: "Weak User",
-      password: "weak" // too weak for regex
+      password: "weak"
     });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toBeDefined();
-    // user.create should not be called with an invalid password
     expect(prismaMock.user.create).not.toHaveBeenCalled();
+    expect(res.headers["set-cookie"]).toBeUndefined();
   });
 });
