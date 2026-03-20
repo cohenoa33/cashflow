@@ -91,25 +91,31 @@ describe("User routes", () => {
     });
   });
 
-  it("PATCH /user rejects when id does not match userId", async () => {
+  it("PATCH /user ignores id in body and always updates the authenticated user", async () => {
     prismaMock.user.findUnique.mockResolvedValue({
       id: 1,
       firstName: "Test",
       lastName: "User"
     } as any);
+    prismaMock.user.update.mockResolvedValue({
+      id: 1,
+      email: "test@example.com",
+      name: "Newfirst Newlast",
+      firstName: "Newfirst",
+      lastName: "Newlast",
+      createdAt: new Date()
+    } as any);
 
+    // Sending a foreign id in body must NOT cause a 404 or update another user
     const res = await request(app)
       .patch("/user")
       .set("Cookie", authCookie)
-      .send({
-        firstName: "NewFirst",
-        lastName: "NewLast",
-        id: 999
-      });
+      .send({ firstName: "NewFirst", lastName: "NewLast", id: 999 });
 
-    expect(res.status).toBe(404);
-    expect(res.body.error).toBe("user not found");
-    expect(prismaMock.user.update).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    // Prisma update must target req.userId (1), not the body id (999)
+    const callArg = prismaMock.user.update.mock.calls[0][0];
+    expect(callArg.where).toEqual({ id: 1 });
   });
 
   it("PATCH /user rejects when no fields provided", async () => {

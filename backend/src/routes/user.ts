@@ -29,25 +29,20 @@ export async function userRoute(req: AuthenticatedRequest, res: Response) {
 
 // PATCH /user – update firstName / lastName (and optional name if you want)
 export async function updateUserRoute(req: AuthenticatedRequest, res: Response) {
-  const { firstName, lastName, id} = req.body || {};
+  const { firstName, lastName } = req.body || {};
 
-  if (
-    firstName === undefined &&
-    lastName === undefined   ) {
+  if (firstName === undefined && lastName === undefined) {
     return res.status(400).json({ error: "no fields to update" });
   }
 
-   const user = await prisma.user.findUnique({
-     where: { id: req.userId },
-     select: {
-       firstName: true,
-       lastName: true
-     }
-   });
+  const user = await prisma.user.findUnique({
+    where: { id: req.userId },
+    select: { firstName: true, lastName: true }
+  });
 
-   if (!user || req.userId !== id) {
-     return res.status(404).json({ error: "user not found" });
-   }
+  if (!user) {
+    return res.status(404).json({ error: "user not found" });
+  }
 
 
   // Helper function to create full name from firstName and lastName
@@ -61,7 +56,7 @@ function makeFullName(firstName: string, lastName: string): string {
 }
     const name = makeFullName(firstName, lastName);
   const updated = await prisma.user.update({
-    where: { id },
+    where: { id: req.userId },
     data: {
      firstName, lastName, name
     },
