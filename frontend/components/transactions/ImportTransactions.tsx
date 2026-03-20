@@ -275,6 +275,14 @@ function startOver() {  setFile(null);
   async function mapHeaderRow(file: File) {
     try {
       setErr(null);
+      if (file.size > 5 * 1024 * 1024) {
+        setErr("File too large (max 5MB)");
+        return;
+      }
+      if (!file.name.toLowerCase().endsWith(".csv") && file.type !== "text/csv") {
+        setErr("Only CSV files are supported");
+        return;
+      }
       const mappedHeader = await getFileHeader(file);
       setHeaderMap(mappedHeader);
 
