@@ -170,6 +170,10 @@ transactionRouter.post("/import", async (req: AuthenticatedRequest, res: Respons
     return res.status(400).json({ error: "accountId and rows are required" });
   }
 
+  if (rows.length > 1000) {
+    return res.status(400).json({ error: "Max 1000 rows per import" });
+  }
+
   const userId = req.userId as number;
 
   // Ensure user can import to this account
@@ -244,6 +248,10 @@ transactionRouter.post(
 
     if (!Array.isArray(rows) || rows.length === 0) {
       return res.status(400).json({ error: "rows required" });
+    }
+
+    if (rows.length > 200) {
+      return res.status(400).json({ error: "Max 200 rows for category suggestions" });
     }
 
     const descriptions = rows

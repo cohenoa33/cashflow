@@ -6,6 +6,8 @@ import type { AuthenticatedRequest } from "../types/express";
 import { buildAccountDailySummaries, makeAccountWithSummary } from "../helpers/accounts";
 import { CurrencySymbols, CurrencyNames } from "../utils/currency";
 
+const VALID_ACCOUNT_TYPES = ["bank", "creditCard", "savings", "investment", "cash"];
+
 export const accountRouter = Router();
 
 /**
@@ -29,12 +31,17 @@ accountRouter.post("/", async (req: AuthenticatedRequest, res: Response) => {
 
   if (!name) return res.status(400).json({ error: "name required" });
 
+  if (type && !VALID_ACCOUNT_TYPES.includes(type)) {
+    return res.status(400).json({ error: "Invalid account type" });
+  }
+
   const account = await prisma.account.create({
     data: {
       name,
       currency,
       description,
-      notes,type,
+      notes,
+      type,
       startingBalance,
       ownerId: req.userId
     }
@@ -131,7 +138,7 @@ accountRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response) => 
     return res.status(403).json({ error: "only owner can edit this account" });
   }
 
-  const { name, currency , notes, description, type} = req.body || {};
+  const { name, currency, notes, description, type } = req.body || {};
   const data: any = {};
   if (notes !== undefined) data.notes = notes;
   if (description !== undefined) data.description = description;
@@ -139,9 +146,13 @@ accountRouter.patch("/:id", async (req: AuthenticatedRequest, res: Response) => 
   if (currency !== undefined) data.currency = currency;
   if (type !== undefined) data.type = type;
 
-    if (!CurrencySymbols[currency]) {
-      return res.status(400).json({ error: "Unsupported currency" });
-    }
+  if (currency !== undefined && !CurrencySymbols[currency]) {
+    return res.status(400).json({ error: "Unsupported currency" });
+  }
+
+  if (type !== undefined && !VALID_ACCOUNT_TYPES.includes(type)) {
+    return res.status(400).json({ error: "Invalid account type" });
+  }
 
   const account = await prisma.account.update({
     where: { id: accountId },
