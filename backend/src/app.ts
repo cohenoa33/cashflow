@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import { registerRoute } from "./routes/register";
@@ -36,14 +37,15 @@ export const passwordLimiter = rateLimit({
 });
 
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:3000";
-app.use(express.json());
+app.use(helmet());
+app.use(express.json({ limit: "50kb" }));
 app.use(cookieParser());
 
 app.use(
   cors({
     origin: CORS_ORIGIN,
     credentials: true,
-    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
@@ -54,7 +56,7 @@ app.use("/transactions", requireAuth, transactionRouter);
 app.use("/accounts", requireAuth, accountRouter);
 app.get("/user", requireAuth, userRoute);
 app.patch("/user", requireAuth, updateUserRoute);
-app.post("/user/change-password", requireAuth, changePasswordRoute);
+app.post("/user/change-password", requireAuth, passwordLimiter, changePasswordRoute);
 // public
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.post("/register", authLimiter, registerRoute);
@@ -62,8 +64,9 @@ app.post("/login", authLimiter, loginRoute);
 app.post("/forgot-password", passwordLimiter, forgotPasswordRoute);
 app.post("/reset-password", passwordLimiter, resetPasswordRoute);
 app.post("/logout", (_req, res) => {
-  res.clearCookie("cf_token", { path: "/", httpOnly: true });
-  res.clearCookie("cf_session", { path: "/" });
+  const secure = process.env.NODE_ENV === "production";
+  res.clearCookie("cf_token",   { path: "/", httpOnly: true,  secure, sameSite: "strict" });
+  res.clearCookie("cf_session", { path: "/", httpOnly: false, secure, sameSite: "strict" });
   res.json({ ok: true });
 });
 
