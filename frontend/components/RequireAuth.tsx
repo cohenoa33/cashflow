@@ -10,15 +10,14 @@ export default function RequireAuth({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const loggedIn = isLoggedIn();
 
   useEffect(() => {
-    // This runs only on the client after hydration
-    if (!isLoggedIn()) {
+    if (!loggedIn) {
       router.replace("/login");
     }
-  }, [router]);
+  }, [loggedIn, router]);
 
-  // Always render children; if the user is not logged in, they’ll be
-  // redirected right after hydration. Backend still enforces auth.
+  if (!loggedIn) return null;
   return <>{children}</>;
 }
