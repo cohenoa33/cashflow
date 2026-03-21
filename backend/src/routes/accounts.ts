@@ -4,9 +4,9 @@ import { canViewAccount, isOwner, } from "../helpers";
 import { Router } from "express";
 import type { AuthenticatedRequest } from "../types/express";
 import { buildAccountDailySummaries, makeAccountWithSummary } from "../helpers/accounts";
-import { CurrencySymbols, CurrencyNames } from "../utils/currency";
+import { CurrencySymbols } from "../utils/currency";
 
-const VALID_ACCOUNT_TYPES = ["bank", "creditCard", "savings", "investment", "cash"];
+const VALID_ACCOUNT_TYPES = ["bank", "creditCard", "savings", "investment", "cash", "other"];
 
 export const accountRouter = Router();
 
